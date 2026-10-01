@@ -24,8 +24,8 @@ export const defaultDescription = `${restaurant.name}, restaurant grillade${
 
 export const nav = [
   { href: "/", label: "Accueil" },
-  { href: "/menu", label: "Notre carte" },
-  { href: "/#incontournables", label: "Nos spécialités" },
+  { href: "/menu", label: "La carte" },
+  { href: "/#favoris", label: "Nos spécialités" },
   { href: "/galerie", label: "Galerie" },
   { href: "/#avis", label: "Avis", requiresReviews: true },
   { href: "/contact", label: "Contact" },

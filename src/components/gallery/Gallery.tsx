@@ -5,9 +5,28 @@ import { AnimatePresence, m, type PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { images, type ImageKey } from "@/data/images";
+import { lockScroll } from "@/lib/scroll-lock";
 import { cn } from "@/lib/utils";
 
-export function Gallery({ keys, className }: { keys: ImageKey[]; className?: string }) {
+/** Grille asymétrique (accueil) : 1 grande photo + 4, pensée pour 5 images. */
+const FEATURE_CELLS = [
+  "col-span-2 aspect-[4/3] md:col-span-7 md:row-span-2 md:aspect-auto",
+  "aspect-[4/5] md:col-span-5 md:aspect-auto",
+  "aspect-[4/5] md:col-span-5 md:aspect-auto",
+  "aspect-[4/5] md:col-span-4 md:aspect-auto",
+  "aspect-[4/5] md:col-span-8 md:aspect-auto",
+];
+
+export function Gallery({
+  keys,
+  className,
+  layout = "masonry",
+}: {
+  keys: ImageKey[];
+  className?: string;
+  /** "masonry" : colonnes (page Galerie). "feature" : grille asymétrique (accueil). */
+  layout?: "masonry" | "feature";
+}) {
   const [index, setIndex] = useState<number | null>(null);
   const [dir, setDir] = useState(0);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -30,10 +49,10 @@ export function Gallery({ keys, className }: { keys: ImageKey[]; className?: str
       if (e.key === "ArrowLeft") go(-1);
     };
     window.addEventListener("keydown", onKey);
-    document.documentElement.style.overflow = "hidden";
+    const unlock = lockScroll();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.documentElement.style.overflow = "";
+      unlock();
     };
   }, [index, go, close]);
 
@@ -51,11 +70,24 @@ export function Gallery({ keys, className }: { keys: ImageKey[]; className?: str
 
   return (
     <>
-      <ul className={cn("columns-2 gap-3 md:columns-3 md:gap-5", className)}>
+      <ul
+        className={cn(
+          layout === "feature"
+            ? "grid grid-cols-2 gap-3 md:auto-rows-[230px] md:grid-cols-12 md:gap-4 lg:auto-rows-[290px]"
+            : "columns-1 gap-4 sm:columns-2 sm:gap-5",
+          className,
+        )}
+      >
         {keys.map((k, i) => {
           const img = images[k];
+          const feature = layout === "feature";
           return (
-            <li key={k} className="mb-3 break-inside-avoid md:mb-5">
+            <li
+              key={k}
+              className={cn(
+                feature ? cn("relative", FEATURE_CELLS[i % FEATURE_CELLS.length]) : "mb-4 break-inside-avoid sm:mb-5",
+              )}
+            >
               <button
                 type="button"
                 onClick={(e) => {
@@ -63,15 +95,23 @@ export function Gallery({ keys, className }: { keys: ImageKey[]; className?: str
                   setDir(0);
                   setIndex(i);
                 }}
-                className="group relative block w-full overflow-hidden rounded-[4px] bg-line"
+                className={cn(
+                  "group relative block w-full overflow-hidden rounded-[18px] bg-line",
+                  feature && "h-full",
+                )}
                 aria-label={`Agrandir : ${img.alt}`}
               >
                 <Image
                   src={img.src}
                   alt={img.alt}
                   placeholder="blur"
-                  sizes="(min-width: 768px) 33vw, 50vw"
-                  className="h-auto w-full transition-transform duration-700 ease-[var(--ease-soft)] group-hover:scale-[1.03]"
+                  {...(feature
+                    ? { fill: true, sizes: i === 0 ? "(min-width: 768px) 58vw, 100vw" : "(min-width: 768px) 40vw, 50vw" }
+                    : { sizes: "(min-width: 640px) 50vw, 100vw" })}
+                  className={cn(
+                    "transition-transform duration-700 ease-[var(--ease-soft)] group-hover:scale-[1.03]",
+                    feature ? "object-cover" : "h-auto w-full",
+                  )}
                 />
                 <span className="pointer-events-none absolute inset-0 bg-night/0 transition-colors duration-500 group-hover:bg-night/10" />
               </button>
@@ -86,7 +126,7 @@ export function Gallery({ keys, className }: { keys: ImageKey[]; className?: str
             role="dialog"
             aria-modal="true"
             aria-label="Galerie photo"
-            className="fixed inset-0 z-[60] flex flex-col bg-night text-white"
+            className="on-dark fixed inset-0 z-[60] flex flex-col bg-night text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -1,6 +1,9 @@
+import { ArrowRight } from "lucide-react";
 import type { tacos as TacosData } from "@/data/menu";
 import { formatPrice, spokenPrice } from "@/data/menu";
+import { TACOS_PRODUCT_ID } from "@/features/order/catalog";
 import { PriceBadge } from "@/components/ui/PriceBadge";
+import { OrderButton } from "@/components/order/OrderButton";
 
 export function TacosBlock({ tacos }: { tacos: typeof TacosData }) {
   return (
@@ -15,6 +18,10 @@ export function TacosBlock({ tacos }: { tacos: typeof TacosData }) {
             </li>
           ))}
         </ul>
+        <OrderButton productId={TACOS_PRODUCT_ID} className="mt-8 w-full sm:w-auto">
+          Composer mon tacos
+          <ArrowRight className="size-[18px]" aria-hidden="true" />
+        </OrderButton>
       </div>
       <div className="space-y-8">
         <div>

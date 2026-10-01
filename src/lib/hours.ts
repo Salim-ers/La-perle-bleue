@@ -10,7 +10,7 @@ export const WEEK: { id: Day; label: string }[] = [
   { id: "sunday", label: "Dimanche" },
 ];
 
-const toMinutes = (hhmm: string) => {
+export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 };
@@ -18,7 +18,7 @@ const toMinutes = (hhmm: string) => {
 /** "23:00" -> "23 h", "11:30" -> "11 h 30" */
 export const formatTime = (hhmm: string) => {
   const [h, m] = hhmm.split(":");
-  return m === "00" ? `${Number(h)} h` : `${Number(h)} h ${m}`;
+  return m === "00" ? `${Number(h)} h` : `${Number(h)} h ${m}`;
 };
 
 export const formatRanges = (ranges: TimeRange[]) =>

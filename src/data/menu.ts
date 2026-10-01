@@ -46,6 +46,11 @@ export interface TacosFormula {
   price: number;
 }
 
+export interface TacosSize extends TacosFormula {
+  /** Nombre de viandes à choisir (utilisé par le configurateur). */
+  meats: number;
+}
+
 export const categories: MenuCategory[] = [
   { id: "assiettes", name: "Assiettes", note: "Servies avec boulgour, frites et crudités" },
   { id: "sandwichs", name: "Sandwichs", note: "Servis avec frites" },
@@ -137,10 +142,10 @@ export const products: MenuProduct[] = [
 
 export const tacos = {
   formulas: [
-    { label: "1 viande", price: 600 },
-    { label: "2 viandes", price: 700 },
-    { label: "3 viandes", price: 900 },
-  ] satisfies TacosFormula[],
+    { label: "1 viande", price: 600, meats: 1 },
+    { label: "2 viandes", price: 700, meats: 2 },
+    { label: "3 viandes", price: 900, meats: 3 },
+  ] satisfies TacosSize[],
   meats: ["Nuggets", "Chicken", "Cordon bleu", "Kebab", "Merguez", "Kefta", "Poulet", "Steak", "Tenders"],
   supplements: [
     { label: "Frites, cheddar", price: 50 },
@@ -153,8 +158,8 @@ export const tacos = {
 export const MENU_TODO = [
   "Aucun sandwich « Kebab » classique n'apparaît sur le tableau : oubli ou volontaire ?",
   "Lahmacun photographié mais absent de la carte : à ajouter (nom, prix) ou retirer la photo.",
-  "Liste des sauces disponibles : TODO_CONTENT",
-  "Formules / menus (boisson incluse ?) : TODO_CONTENT",
+  "Liste des sauces disponibles : TODO_CONTENT (proposition dans src/data/options.ts)",
+  "Formules / menus (boisson incluse ?) : TODO_CONTENT (proposition dans src/data/options.ts)",
 ];
 
 /** Prix façon carte du restaurant : 850 -> "8€50". */

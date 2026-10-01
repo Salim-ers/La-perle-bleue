@@ -8,6 +8,7 @@ import { TacosBlock } from "@/components/menu/TacosBlock";
 import { ButtonLink } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
+// Prochaines catégories à ouvrir ici : menus, accompagnements (« petit-plus »), boissons.
 const PREVIEW: MenuCategory["id"][] = ["assiettes", "sandwichs", "tacos", "burgers"];
 
 export function MenuPreview({
@@ -36,12 +37,16 @@ export function MenuPreview({
   };
 
   return (
-    <section aria-labelledby="carte-title" className="bg-white py-20 text-night lg:py-32">
+    <section id="carte" aria-labelledby="carte-title" className="bg-white py-20 text-night lg:py-32">
       <div className="container-x">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <h2 id="carte-title" className="display text-[clamp(2.8rem,6vw,4.6rem)] text-deep">
-            Notre carte
-          </h2>
+          <div>
+            <p className="eyebrow text-royal">À emporter ou sur place</p>
+            <h2 id="carte-title" className="display mt-3 text-[clamp(2.8rem,6vw,4.6rem)] text-deep">
+              Notre carte
+            </h2>
+            <p className="mt-3 text-lg text-slate">Choisissez, personnalisez, c&apos;est prêt.</p>
+          </div>
           <ButtonLink href="/menu" variant="outline-dark">
             Voir toute la carte
           </ButtonLink>
@@ -85,7 +90,7 @@ export function MenuPreview({
           ) : (
             <ul className="grid gap-x-14 md:grid-cols-2">
               {items.map((p) => (
-                <MenuItem key={p.id} product={p} onOpen={setSelected} />
+                <MenuItem key={p.id} product={p} onOpen={setSelected} orderable />
               ))}
             </ul>
           )}

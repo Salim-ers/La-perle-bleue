@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { VisitUs } from "@/components/info/VisitUs";
+import { RestaurantInfo } from "@/components/info/RestaurantInfo";
 import { city } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="pt-[var(--header-h)]">
-      <div className="bg-night h-6 lg:h-10" aria-hidden="true" />
-      <VisitUs headingLevel="h1" />
+      <RestaurantInfo headingLevel="h1" />
     </div>
   );
 }

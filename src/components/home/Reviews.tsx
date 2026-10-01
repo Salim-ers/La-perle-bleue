@@ -21,7 +21,7 @@ function Stars({ value, className }: { value: number; className?: string }) {
 export function Reviews({ reviews, reviewsHref }: { reviews: Review[]; reviewsHref: string | null }) {
   const { googleRating: rating, googleReviewCount: count } = restaurant;
   return (
-    <section id="avis" aria-labelledby="avis-title" className="grain bg-night py-20 lg:py-28">
+    <section id="avis" aria-labelledby="avis-title" className="grain on-dark bg-night py-20 lg:py-28">
       <div className="container-x">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>

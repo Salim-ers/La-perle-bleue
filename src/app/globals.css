@@ -13,6 +13,15 @@
   --color-line: #d6e0ee;
   --color-fog: #a9b8d3;
   --color-slate: #4a5b7a;
+  /* Fonds chauds : la nourriture apporte la couleur, le bleu signe la marque. */
+  --color-cream: #faf7f2;
+  --color-paper: #f2eee7;
+  --color-paper-2: #e8e2d8;
+  --color-coal: #16181d;
+  --color-coal-2: #23262d;
+  /* Braise : uniquement pour de petits détails (flamme, badge « Généreux »). */
+  --color-ember: #c2410c;
+  --color-leaf: #15803d;
 
   --font-display: var(--font-bsd), "Arial Narrow", Impact, sans-serif;
   --font-sans: var(--font-fig), ui-sans-serif, system-ui, sans-serif;
@@ -25,13 +34,20 @@
   --brand-primary: #0140b8;
   --brand-secondary: #053b8c;
   --brand-accent: #dfc7a5;
-  --background: #06132e;
-  --surface: #0b1f45;
-  --text-primary: #f4f7fc;
-  --text-secondary: #a9b8d3;
+  --background: #faf7f2;
+  --surface: #ffffff;
+  --text-primary: #06132e;
+  --text-secondary: #4a5b7a;
   --muted: #4a5b7a;
-  --border: rgba(140, 200, 242, 0.16);
-  --header-h: 72px;
+  --border: #d6e0ee;
+  --header-h: 68px;
+  --focus-ring: #0140b8;
+}
+
+@media (width >= 64rem) {
+  :root {
+    --header-h: 76px;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -42,6 +58,7 @@
 
 html {
   scroll-padding-top: calc(var(--header-h) + 64px);
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -55,13 +72,19 @@ body {
 
 ::selection {
   background: var(--brand-accent);
-  color: var(--background);
+  color: #06132e;
 }
 
 :focus-visible {
-  outline: 3px solid #8cc8f2;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
   border-radius: 6px;
+}
+
+/* Zones sombres : anneau de focus bleu clair, texte clair par défaut. */
+@utility on-dark {
+  --focus-ring: #8cc8f2;
+  color: #fff;
 }
 
 @utility container-x {
@@ -80,6 +103,14 @@ body {
   line-height: 0.92;
   letter-spacing: -0.005em;
   text-wrap: balance;
+}
+
+/* Petit sur-titre de section */
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 @utility no-scrollbar {
@@ -117,38 +148,38 @@ body {
   }
 }
 
-/* ——— Hero : animation CSS (aucun JS requis) ——— */
+/* ——— Hero : animation CSS (aucun JS requis, l'image LCP n'attend pas l'hydratation) ——— */
 @media (prefers-reduced-motion: no-preference) {
-  .hero-perle {
-    animation: perle-in 0.9s var(--ease-soft) both;
+  .hero-media {
+    animation: hero-media 1.1s var(--ease-soft) both;
   }
-  .hero-photo {
-    animation: perle-reveal 1.1s var(--ease-soft) 0.1s both;
+  .hero-media img {
+    animation: hero-zoom 1.6s var(--ease-soft) both;
   }
-  .hero-plate {
-    animation: plate-turn 1.8s var(--ease-soft) 0.1s both;
+  .hero-rise {
+    animation: hero-rise 0.9s var(--ease-soft) var(--d, 0.3s) both;
   }
-  .hero-ring {
-    animation: ring-in 1.1s var(--ease-soft) 0.3s both;
+  .hero-pop {
+    animation: hero-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0.7s) both;
   }
   .hero-in {
     animation: text-in 0.8s var(--ease-soft) var(--d, 0s) both;
   }
 }
-@keyframes perle-in {
-  from { transform: scale(0.94); opacity: 0.6; }
+@keyframes hero-media {
+  from { transform: translateY(18px) scale(0.965); }
+  to { transform: none; }
+}
+@keyframes hero-zoom {
+  from { transform: scale(1.12); }
+  to { transform: none; }
+}
+@keyframes hero-rise {
+  from { transform: translateY(28px); opacity: 0.01; }
   to { transform: none; opacity: 1; }
 }
-@keyframes perle-reveal {
-  from { clip-path: circle(34% at 50% 50%); }
-  to { clip-path: circle(50% at 50% 50%); }
-}
-@keyframes plate-turn {
-  from { transform: scale(1.16) rotate(-8deg); }
-  to { transform: scale(1.04) rotate(0deg); }
-}
-@keyframes ring-in {
-  from { transform: scale(0.88); opacity: 0; }
+@keyframes hero-pop {
+  from { transform: scale(0.85); opacity: 0.01; }
   to { transform: none; opacity: 1; }
 }
 @keyframes text-in {

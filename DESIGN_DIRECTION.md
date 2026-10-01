@@ -1,5 +1,20 @@
 # La Perle Bleue — Direction artistique
 
+## Évolution « commerciale » (octobre 2026)
+
+Objectif : passer de « Voilà notre restaurant » à « Voilà ce que je veux manger → je commande ».
+Priorité visuelle : PHOTO, PRODUIT, PRIX, COMMANDER.
+
+- **Fonds chauds** : blanc cassé `cream` #FAF7F2, gris chaud `paper` #F2EEE7, anthracite `coal` #16181D ponctuellement. Le bleu nuit reste pour les sections de marque (étapes, CTA final, pied de page).
+- **Le bleu signe la marque** : logo, navigation, tous les boutons COMMANDER (`royal`), détails. La nourriture apporte les couleurs chaudes.
+- **Braise** `ember` #C2410C : uniquement la petite flamme et le badge « Généreux ».
+- **Vert** `leaf` #15803D : uniquement le statut « Ouvert » de la barre d'information.
+- **Boutons** : pilule, libellés en capitales courtes (COMMANDER, AJOUTER, VOIR LA CARTE).
+- **Photos** : coins arrondis 18 à 28 px (cartes produits, hero, galerie) pour un rendu plus commercial.
+- **Hero** : marque + promesse + COMMANDER à gauche ; composition photo à droite (plat principal, deuxième photo partielle, étiquettes produit cliquables). Sur mobile, photo d'abord et COMMANDER visible sans défiler.
+- **Prix** : style du tableau (« 14€00 ») sur la carte et les fiches ; format standard (« 14,00 € ») dans le panier et le paiement.
+- **Animation** : le hero reste en CSS pur (l'image LCP n'attend pas le JavaScript). Framer Motion pour l'apparition en cascade des cartes, les panneaux (ressort), le panier et les micro-interactions.
+
 ## Ce que dit l'identité existante
 
 - **Logo** : écriture script « la Perle bleue », encadrée de deux perles nazar (l'œil bleu turc) suspendues à une chaînette.

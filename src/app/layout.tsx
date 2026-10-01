@@ -6,6 +6,9 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileActionBar } from "@/components/layout/MobileActionBar";
 import { Providers } from "@/components/layout/Providers";
 import { RestaurantJsonLd } from "@/components/layout/JsonLd";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { CartToast } from "@/components/cart/CartToast";
+import { ProductConfigurator } from "@/components/order/ProductConfigurator";
 import { directionsHref, phoneHref, showReviews } from "@/lib/contact";
 import { defaultDescription, defaultTitle, nav, siteUrl } from "@/lib/site";
 
@@ -50,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#06132e",
+  themeColor: "#faf7f2",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -68,6 +71,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="contenu">{children}</main>
           <Footer nav={navItems} />
           <MobileActionBar phoneHref={phoneHref} directionsHref={directionsHref} />
+          <CartToast />
+          <CartDrawer />
+          <ProductConfigurator />
         </Providers>
         <RestaurantJsonLd />
       </body>

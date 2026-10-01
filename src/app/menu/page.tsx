@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InfoBar } from "@/components/layout/InfoBar";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { MenuBrowser } from "@/components/menu/MenuBrowser";
 import { getMenu } from "@/lib/data";
@@ -15,8 +16,10 @@ export default async function MenuPage() {
   return (
     <>
       <PageIntro title="Notre carte">
-        Assiettes grillées, sandwichs, tacos et burgers. Sur place ou à emporter.
+        Assiettes grillées, sandwichs, tacos et burgers. Touchez « + » pour composer votre commande, à
+        retirer sur place.
       </PageIntro>
+      <InfoBar className="border-t" />
       <div className="bg-white text-night">
         <MenuBrowser categories={categories} products={products} tacos={tacos} />
       </div>

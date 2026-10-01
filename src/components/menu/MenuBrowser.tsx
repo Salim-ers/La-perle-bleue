@@ -93,7 +93,7 @@ export function MenuBrowser({
               ) : (
                 <ul className="grid gap-x-14 md:grid-cols-2">
                   {items.map((p) => (
-                    <MenuItem key={p.id} product={p} onOpen={setSelected} />
+                    <MenuItem key={p.id} product={p} onOpen={setSelected} orderable />
                   ))}
                 </ul>
               )}

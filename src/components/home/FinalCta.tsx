@@ -1,4 +1,4 @@
-import { MapPin, Phone } from "lucide-react";
+import { ArrowRight, MapPin, Phone } from "lucide-react";
 import { Perle } from "@/components/ui/Perle";
 import { ButtonLink } from "@/components/ui/Button";
 import { restaurant } from "@/data/restaurant";
@@ -13,7 +13,7 @@ export function FinalCta({
 }) {
   const summary = hoursSummary(restaurant.openingHours);
   return (
-    <section aria-labelledby="faim-title" className="grain overflow-hidden bg-night py-20 lg:py-28">
+    <section aria-labelledby="faim-title" className="grain on-dark overflow-hidden bg-night py-20 lg:py-28">
       <div className="container-x grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
         <Perle
           image="assiette-entrecote-carre"
@@ -25,13 +25,17 @@ export function FinalCta({
             Une petite faim ?
           </h2>
           <p className="mx-auto mt-5 max-w-[36ch] text-lg text-white/80 lg:mx-0">
-            Retrouvez-nous directement au restaurant{summary ? `, ${summary}` : ""}.
+            Commandez en ligne, récupérez au comptoir. Ou venez vous installer{summary ? `, ${summary}` : ""}.
           </p>
-          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-            <ButtonLink href={directionsHref} variant="sand" icon={<MapPin className="size-4" aria-hidden="true" />}>
-              Voir l&apos;itinéraire
+          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
+            <ButtonLink href="/menu" size="lg">
+              Commander
+              <ArrowRight className="size-[18px]" aria-hidden="true" />
             </ButtonLink>
-            <ButtonLink href={phoneHref} variant="ghost" icon={<Phone className="size-4" aria-hidden="true" />}>
+            <ButtonLink href={directionsHref} variant="ghost" size="lg" icon={<MapPin className="size-4" aria-hidden="true" />}>
+              Itinéraire
+            </ButtonLink>
+            <ButtonLink href={phoneHref} variant="ghost" size="lg" icon={<Phone className="size-4" aria-hidden="true" />}>
               Appeler
             </ButtonLink>
           </div>

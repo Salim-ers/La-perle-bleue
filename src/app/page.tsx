@@ -1,33 +1,60 @@
+import { InfoBar } from "@/components/layout/InfoBar";
 import { Hero } from "@/components/home/Hero";
-import { Signature } from "@/components/home/Signature";
-import { Incontournables } from "@/components/home/Incontournables";
+import { FeaturedProducts } from "@/components/home/FeaturedProducts";
+import { HowItWorks } from "@/components/home/HowItWorks";
 import { BigVisual } from "@/components/home/BigVisual";
 import { MenuPreview } from "@/components/home/MenuPreview";
 import { SavoirFaire } from "@/components/home/SavoirFaire";
 import { GalleryPreview } from "@/components/home/GalleryPreview";
 import { Reviews } from "@/components/home/Reviews";
 import { FinalCta } from "@/components/home/FinalCta";
-import { VisitUs } from "@/components/info/VisitUs";
-import { featuredIds, getMenu, getReviews } from "@/lib/data";
-import { directionsHref, phoneHref, reviewsHref, shortAddress, showReviews } from "@/lib/contact";
+import { RestaurantInfo } from "@/components/info/RestaurantInfo";
+import type { ProductCardProps } from "@/components/order/ProductCard";
+import { getProduct } from "@/features/order/catalog";
+import { featured, getMenu, getReviews } from "@/lib/data";
+import { directionsHref, phoneHref, reviewsHref, showReviews } from "@/lib/contact";
+
+const categoryLabel: Partial<Record<string, string>> = {
+  assiettes: "Assiette",
+  sandwichs: "Sandwich",
+  burgers: "Burger",
+  tacos: "Tacos",
+};
 
 export default async function HomePage() {
   const [{ categories, products, tacos }, reviews] = await Promise.all([getMenu(), getReviews()]);
-  const featured = featuredIds
-    .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is NonNullable<typeof p> => !!p);
+
+  const favorites: ProductCardProps[] = featured.flatMap((f) => {
+    const p = getProduct(f.id);
+    if (!p) return [];
+    return [
+      {
+        id: p.id,
+        name: p.name,
+        description: f.pitch,
+        price: p.basePrice,
+        image: f.image,
+        category: categoryLabel[p.category],
+        badge: f.badge ?? p.badge,
+        available: p.available,
+      },
+    ];
+  });
 
   return (
     <>
-      <Hero directionsHref={directionsHref} shortAddress={shortAddress} />
-      <Signature />
-      <Incontournables products={featured} />
+      <div className="pt-[var(--header-h)]">
+        <InfoBar />
+      </div>
+      <Hero />
+      <FeaturedProducts products={favorites} />
+      <HowItWorks />
       <BigVisual />
       <MenuPreview categories={categories} products={products} tacos={tacos} />
       <SavoirFaire />
       <GalleryPreview />
       {showReviews && <Reviews reviews={reviews} reviewsHref={reviewsHref} />}
-      <VisitUs />
+      <RestaurantInfo />
       <FinalCta directionsHref={directionsHref} phoneHref={phoneHref} />
     </>
   );

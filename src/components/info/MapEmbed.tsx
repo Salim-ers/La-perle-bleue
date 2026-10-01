@@ -14,7 +14,7 @@ export function MapEmbed({ src, directionsHref }: { src: string | null; directio
   const bg = images["facade-4x5"];
 
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[4px] bg-night-2 sm:aspect-[16/7]">
+    <div className="on-dark relative aspect-[4/3] w-full overflow-hidden rounded-[22px] bg-night-2 sm:aspect-[16/7]">
       {loaded && src ? (
         <iframe
           src={src}
@@ -44,9 +44,7 @@ export function MapEmbed({ src, directionsHref }: { src: string | null; directio
                   </button>
                   <p className="mt-3 text-sm text-fog">La carte est fournie par Google Maps.</p>
                 </>
-              ) : (
-                <p className="mt-6 font-semibold text-white">Adresse à compléter</p>
-              )}
+              ) : null}
               {directionsHref && (
                 <a
                   href={directionsHref}

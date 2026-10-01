@@ -13,7 +13,7 @@ export default function GaleriePage() {
   return (
     <>
       <PageIntro title="Galerie">Le grill, la vitrine, la salle et nos assiettes.</PageIntro>
-      <section aria-label="Photos" className="bg-mist py-14 lg:py-20">
+      <section aria-label="Photos" className="bg-white py-14 lg:py-20">
         <div className="container-x">
           <Gallery keys={galleryKeys} />
         </div>

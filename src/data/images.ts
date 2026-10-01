@@ -52,14 +52,13 @@ export const images = {
 
 export type ImageKey = keyof typeof images;
 
-/** Aperçu de l'accueil : alternance paysage / portrait pour des colonnes équilibrées. */
+/** Aperçu de l'accueil : grille asymétrique de 5 photos (la première est la plus grande). */
 export const galleryPreviewKeys: ImageKey[] = [
-  "vitrine-cuisine",
-  "assiette-mixte",
   "salle",
-  "berliner-kebab",
-  "comptoir-commandes",
   "assiette-entrecote",
+  "lahmacun",
+  "assiette-poulet",
+  "comptoir-commandes",
 ];
 
 /** Ordre de la galerie. */
