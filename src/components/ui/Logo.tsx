@@ -11,17 +11,20 @@ export function Logo({
   variant = "light",
   className,
   priority,
+  sizes = "(min-width: 1024px) 200px, 160px",
 }: {
   variant?: "light" | "dark";
   className?: string;
   priority?: boolean;
+  /** Largeur d'affichage, pour charger une version assez nette. */
+  sizes?: string;
 }) {
   return (
     <Image
       src={variant === "light" ? logoBlanc : logoBleu}
       alt="La Perle Bleue"
       className={cn("h-auto", className)}
-      sizes="(min-width: 1024px) 200px, 160px"
+      sizes={sizes}
       priority={priority}
     />
   );

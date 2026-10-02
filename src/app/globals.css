@@ -165,6 +165,13 @@ body {
   .hero-in {
     animation: text-in 0.8s var(--ease-soft) var(--d, 0s) both;
   }
+  .hero-nudge {
+    animation: hero-nudge 2.2s ease-in-out 1.6s infinite;
+  }
+}
+@keyframes hero-nudge {
+  0%, 100% { transform: none; }
+  50% { transform: translateY(5px); }
 }
 @keyframes hero-media {
   from { transform: translateY(18px) scale(0.965); }
