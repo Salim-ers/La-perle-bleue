@@ -18,6 +18,7 @@ import salle from "@/assets/images/salle.webp";
 import salleLarge from "@/assets/images/salle-large.webp";
 import vitrineBroche from "@/assets/images/hero-desktop-vitrine-broche.webp";
 import vitrineCuisine from "@/assets/images/vitrine-cuisine.webp";
+import { productPhotos } from "./product-photos";
 
 /**
  * Registre des photos. Les fichiers reçus ont transité par une retouche IA
@@ -48,6 +49,8 @@ export const images = {
   "facade-4x5": { src: facade4x5, alt: "Façade et vitrines de La Perle Bleue" },
   "hero-assiettes": { src: heroMobileAssietteMixte, alt: "Assiettes de grillades alignées sur le comptoir" },
   "hero-fond": { src: heroFondFlou, alt: "" },
+  // Plats sans vraie photo : illustrations générées (voir product-photos.ts).
+  ...productPhotos,
 } satisfies Record<string, SiteImage>;
 
 export type ImageKey = keyof typeof images;

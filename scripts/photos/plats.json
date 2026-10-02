@@ -1,0 +1,151 @@
+{
+ "model": "gpt-image-2",
+ "quality": "high",
+ "styles": {
+  "assiette": {
+   "refs": [
+    "assiette-poulet.webp",
+    "assiette-entrecote.webp"
+   ],
+   "text": "Photo culinaire réaliste prise au smartphone haut de gamme, vue de dessus, d'une grande assiette ovale en porcelaine blanche posée sur un plan de travail en granit gris foncé. Lumière naturelle douce, couleurs chaudes et appétissantes, netteté élevée, aucun texte, aucun logo, aucune main, aucun couvert. Composition : frites dorées à gauche, boulgour à la tomate (orangé) en bas à droite, salade iceberg émincée et salade de tomates-concombre-persil en haut, la viande grillée bien visible au centre-droit. Assiette légèrement coupée par les bords du cadre. Format vertical."
+  },
+  "sandwich": {
+   "refs": [
+    "berliner-kebab.webp"
+   ],
+   "text": "Photo culinaire réaliste, gros plan à 45°, sur une planche en bois sombre, fond sombre légèrement flou. Lumière chaude latérale, garniture généreuse et appétissante, netteté élevée, aucun texte, aucun logo, aucune main. Une barquette en carton kraft de frites dorées à côté. Format vertical."
+  },
+  "assiette-sans-crudites": {
+   "refs": [
+    "assiette-poulet.webp",
+    "assiette-entrecote.webp"
+   ],
+   "text": "Photo culinaire réaliste prise au smartphone haut de gamme, vue de dessus, d'une grande assiette ovale en porcelaine blanche posée sur un plan de travail en granit gris foncé. Lumière naturelle douce, couleurs chaudes et appétissantes, netteté élevée, aucun texte, aucun logo, aucune main, aucun couvert. Composition : frites dorées à gauche, boulgour à la tomate (orangé) en bas à droite, la viande bien visible au centre-droit. Pas de salade ni de crudités dans cette assiette. Assiette légèrement coupée par les bords du cadre. Format vertical."
+  },
+  "burger": {
+   "refs": [
+    "berliner-kebab.webp"
+   ],
+   "text": "Photo culinaire réaliste, gros plan à 45°, d'un burger posé sur une planche en bois sombre, fond sombre légèrement flou. Lumière chaude latérale, garniture généreuse et appétissante, pain brioché doré, netteté élevée, aucun texte, aucun logo, aucune main, pas de frites. Format vertical."
+  }
+ },
+ "jobs": {
+  "assiette-escalope": {
+   "style": "assiette",
+   "dish": "assiette escalope : une escalope de poulet panée, dorée et croustillante, tranchée en deux, avec boulgour, frites et crudités"
+  },
+  "assiette-kebab": {
+   "style": "assiette",
+   "dish": "assiette kebab : une portion généreuse de viande de kebab émincée et grillée, légèrement caramélisée, avec boulgour, frites et crudités"
+  },
+  "tacos": {
+   "style": "sandwich",
+   "dish": "tacos français : grande galette de blé pliée en rectangle et grillée à la presse (marques dorées), coupée en deux pour montrer l'intérieur : viande de kebab, frites et sauce fromagère crémeuse fondante"
+  },
+  "assiette-merguez": {
+   "style": "assiette",
+   "dish": "assiette merguez : 4 à 5 merguez grillées avec marques de grill, avec boulgour, frites et crudités"
+  },
+  "assiette-rs4": {
+   "style": "assiette-sans-crudites",
+   "dish": "assiette RS4 : 3 steaks hachés grillés, un œuf au plat et du fromage fondu sur les steaks, avec boulgour et frites"
+  },
+  "assiette-kefta": {
+   "style": "assiette",
+   "dish": "assiette kefta : 4 brochettes de kefta grillées (viande hachée épicée de forme allongée, marques de grill), avec boulgour, frites et crudités"
+  },
+  "assiette-steak": {
+   "style": "assiette",
+   "dish": "assiette steak : 4 steaks hachés grillés avec marques de grill, avec boulgour, frites et crudités"
+  },
+  "assiette-adana": {
+   "style": "assiette",
+   "dish": "assiette adana : 2 longues brochettes adana (viande hachée épicée au piment rouge, grillée au charbon), avec boulgour, frites et crudités"
+  },
+  "assiette-brochette-agneau": {
+   "style": "assiette",
+   "dish": "assiette brochette d'agneau : 2 brochettes métalliques de gros cubes d'agneau grillés (morceaux de viande entiers, bien dorés et marqués par le grill, avec quelques morceaux d'oignon et de poivron entre les cubes), surtout PAS de viande hachée ni de kefta, avec boulgour, frites et crudités",
+   "alt": "Assiette brochette d'agneau : brochettes de morceaux d'agneau grillés, avec boulgour, frites et crudités"
+  },
+  "assiette-chicken": {
+   "style": "assiette",
+   "dish": "assiette chicken : morceaux de poulet nappés de sauce curry jaune-orangé, avec boulgour, frites et crudités"
+  },
+  "sandwich-merguez": {
+   "style": "sandwich",
+   "dish": "sandwich merguez : pain garni de merguez grillées, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-rs4": {
+   "style": "sandwich",
+   "dish": "sandwich RS4 : pain garni de 3 steaks hachés grillés, un œuf, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-quatro": {
+   "style": "sandwich",
+   "dish": "sandwich Quatro : pain garni de 4 steaks hachés, cheddar fondu, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-cordon-bleu": {
+   "style": "sandwich",
+   "dish": "sandwich cordon bleu : pain garni d'un cordon bleu pané tranché, cheddar fondu, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-poulet": {
+   "style": "sandwich",
+   "dish": "sandwich poulet : pain garni de morceaux de brochette de poulet grillé et de poulet au paprika, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-turbo": {
+   "style": "sandwich",
+   "dish": "sandwich Turbo : pain garni de poulet pané croustillant, une galette de pomme de terre dorée, cheddar fondu, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-brochette-agneau": {
+   "style": "sandwich",
+   "dish": "sandwich brochette d'agneau : pain garni de morceaux d'agneau grillés, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-chicken": {
+   "style": "sandwich",
+   "dish": "sandwich chicken : pain garni de poulet au curry, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-libanais": {
+   "style": "sandwich",
+   "dish": "sandwich libanais : pain libanais fin roulé, coupé en deux, garni de viande de kebab, salade, tomates et oignons"
+  },
+  "sandwich-triple": {
+   "style": "sandwich",
+   "dish": "sandwich Triple : pain garni de 3 steaks hachés grillés, salade, tomates et oignons, enveloppé de papier kraft"
+  },
+  "sandwich-vegetarien": {
+   "style": "sandwich",
+   "dish": "sandwich végétarien : pain garni de salade, concombre, tomates et oignons, très frais et coloré, sans viande, enveloppé de papier kraft"
+  },
+  "panini-viande": {
+   "style": "sandwich",
+   "dish": "panini grillé à la presse (marques dorées), coupé en deux, garni de viande de kebab et de fromage fondu"
+  },
+  "cheese-burger": {
+   "style": "burger",
+   "dish": "cheese burger : un steak haché, cheddar fondu, salade et tomate, pain brioché au sésame"
+  },
+  "double-cheese": {
+   "style": "burger",
+   "dish": "double cheese : 2 steaks hachés, cheddar fondu, salade et tomate, pain brioché au sésame"
+  },
+  "royal-cheese": {
+   "style": "burger",
+   "dish": "royal cheese : burger haut avec 3 steaks hachés, un œuf au plat, cheddar fondu, salade et tomate"
+  },
+  "chicken-steak": {
+   "style": "burger",
+   "dish": "chicken steak : galette de poulet pané croustillante, cheddar fondu, salade et tomate, pain brioché"
+  },
+  "double-cheese-kefta": {
+   "style": "burger",
+   "dish": "double cheese kefta : 2 galettes de kefta grillées (viande hachée épicée), cheddar fondu, salade et tomate"
+  },
+  "country": {
+   "style": "burger",
+   "dish": "country : steak haché, cheddar fondu et une galette de pomme de terre dorée et croustillante, pain brioché"
+  },
+  "fish-burger": {
+   "style": "burger",
+   "dish": "fish burger : poisson pané doré et croustillant, sauce blanche, salade, pain brioché"
+  }
+ }
+}

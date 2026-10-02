@@ -94,6 +94,7 @@ export function MenuPreview({
               ))}
             </ul>
           )}
+          <p className="mt-6 text-sm text-slate">Photos non contractuelles.</p>
         </div>
       </div>
       <ProductModal product={selected} onClose={close} />

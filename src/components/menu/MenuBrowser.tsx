@@ -102,7 +102,7 @@ export function MenuBrowser({
         })}
         <p className="mt-14 text-sm text-slate">
           Prix en euros, tels qu&apos;affichés au restaurant. Pour toute question sur les
-          allergènes, renseignez-vous au comptoir.
+          allergènes, renseignez-vous au comptoir. Photos non contractuelles.
         </p>
       </div>
 

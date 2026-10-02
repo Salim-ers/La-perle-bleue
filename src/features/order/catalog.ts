@@ -59,6 +59,7 @@ const tacosProduct: Product = {
   description: "Frites et sauce fromagère maison incluses",
   category: "tacos",
   basePrice: tacos.formulas[0].price,
+  image: "tacos-carre",
   available: true,
   optionGroups: tacosOptionGroups,
 };

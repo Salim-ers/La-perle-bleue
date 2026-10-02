@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { images } from "@/data/images";
 import type { tacos as TacosData } from "@/data/menu";
 import { formatPrice, spokenPrice } from "@/data/menu";
 import { TACOS_PRODUCT_ID } from "@/features/order/catalog";
@@ -6,9 +8,20 @@ import { PriceBadge } from "@/components/ui/PriceBadge";
 import { OrderButton } from "@/components/order/OrderButton";
 
 export function TacosBlock({ tacos }: { tacos: typeof TacosData }) {
+  const photo = images["tacos"];
   return (
     <div className="grid gap-10 py-6 md:grid-cols-[1fr_1.2fr]">
       <div>
+        <div className="relative mb-8 aspect-[16/10] overflow-hidden rounded-[22px] bg-paper">
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            fill
+            placeholder="blur"
+            sizes="(min-width: 768px) 45vw, 100vw"
+            className="object-cover"
+          />
+        </div>
         <h3 className="text-lg font-semibold text-night">Formules</h3>
         <ul className="mt-4 flex flex-wrap gap-6">
           {tacos.formulas.map((f) => (

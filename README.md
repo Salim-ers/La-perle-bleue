@@ -26,6 +26,7 @@ npm run build    # build de production
 | Temps de préparation, créneaux, durée de vie du panier | `src/data/ordering.ts` |
 | Produits mis en avant (« Les favoris ») et leurs badges | `src/lib/data.ts` (`featured`) |
 | Photos et textes alternatifs | `src/data/images.ts` et `src/assets/images/` |
+| Photos des plats générées par IA (en attendant de vraies photos) | `src/data/product-photos.ts`, `src/assets/images/produits/`, scripts dans `scripts/photos/` |
 | Avis Google (uniquement de vrais avis) | `src/data/reviews.ts` |
 | Logo | `src/assets/brand/logo-blanc.png`, `logo-bleu.png` |
 | Favicon, image de partage | `src/app/icon.png`, `apple-icon.png`, `opengraph-image.jpg` |
@@ -44,6 +45,7 @@ Toute valeur `TODO_CONTENT` est détectée : l'information (ligne, bouton, carte
 - [ ] Horaires du dimanche (actuellement : fermé, déduit de la carte)
 - [ ] Logo vectoriel (l'actuel est détouré depuis une photo du mur)
 - [ ] Photos originales haute définition (≥ 2400 px)
+- [ ] Vraies photos des plats : 29 plats sont illustrés par des images générées par IA (`src/assets/images/produits/`), à remplacer en gardant le même nom de fichier. La carte affiche « Photos non contractuelles ».
 - [ ] Validation des points `toConfirm` et `MENU_TODO` dans `src/data/menu.ts`
 - [ ] Validation des options de commande marquées `toConfirm` dans `src/data/options.ts` : liste des sauces et nombre offert, pain / galette, prix des suppléments (viande supplémentaire : 2€00 proposé), prix des formules menu
 - [ ] Conditions générales de vente (obligatoires avant d'ouvrir le paiement en ligne)
@@ -93,3 +95,16 @@ Tant que `STRIPE_SECRET_KEY` n'est pas définie, le bouton « Payer » valide to
   1. Remplacer `BigVisual` (parallaxe) par une image fixe.
   2. Retirer l'animation d'entrée de la section signature.
   3. Réduire le nombre de photos de l'aperçu galerie.
+
+## Photos des plats générées (IA)
+
+Les plats sans vraie photo sont illustrés par des images générées avec l'API OpenAI (`gpt-image-2`), en donnant les vraies photos du restaurant comme référence de style.
+
+1. Mettre la clé dans `.env.local` : `OPENAI_API_KEY=...` (fichier ignoré par git).
+2. Décrire le plat dans `scripts/photos/plats.json` (identifiant = id du produit dans `src/data/menu.ts`).
+3. `node scripts/photos/generer.mjs scripts/photos/plats.json <id>` : image dans `photos-generees/` (à vérifier à l'œil : composition fidèle à la carte).
+4. `node scripts/photos/integrer.mjs` : recadrage 4:5 et 1:1, WebP, registre `src/data/product-photos.ts`.
+5. Ajouter `imageKey: "<id>-carre"` au produit dans `src/data/menu.ts`.
+
+Coût indicatif : environ 0,20 $ par photo.
+
