@@ -5,6 +5,8 @@ import { AlertCircle, Info, Loader2, Lock, Store } from "lucide-react";
 import { useCallback, useEffect, useId, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from "react";
 import type { CartLine } from "@/features/cart/store";
 import { useOrderUI } from "@/features/cart/ui";
+import { createDemoOrder, demoPickupAvailability, useDemo } from "@/features/demo/store";
+import { describeForKitchen } from "@/features/order/pricing";
 import { useOrderingState } from "@/features/live/store";
 import { formatSlot, type PickupAvailability } from "@/features/order/pickup";
 import type { CheckoutRequest, CheckoutResponse, Customer } from "@/features/order/types";
@@ -45,6 +47,7 @@ export function CheckoutForm({
   const uid = useId();
   const openCart = useOrderUI((s) => s.openCart);
   const ordering = useOrderingState();
+  const demo = useDemo((s) => s.active);
   const [customer, setCustomer] = useState<Customer>({ firstName: "", lastName: "", phone: "", email: "" });
   const [touched, setTouched] = useState<Partial<Record<keyof Customer, boolean>>>({});
   const [serverErrors, setServerErrors] = useState<Partial<Record<keyof Customer, string>>>({});
@@ -60,13 +63,17 @@ export function CheckoutForm({
   );
 
   const loadSlots = useCallback(async () => {
+    if (demo) {
+      setAvailability(demoPickupAvailability());
+      return;
+    }
     try {
       const res = await fetch("/api/pickup-slots", { cache: "no-store" });
       if (res.ok) setAvailability((await res.json()) as PickupAvailability);
     } catch {
       // réseau : on garde les créneaux connus
     }
-  }, []);
+  }, [demo]);
 
   useEffect(() => {
     void loadSlots();
@@ -122,6 +129,24 @@ export function CheckoutForm({
     }
     // Bouton désactivé immédiatement : un seul paiement par clic.
     setStatus({ type: "loading" });
+    if (demo) {
+      // Démonstration : rien n'est envoyé au serveur, la commande reste sur cet appareil.
+      const order = createDemoOrder({
+        customer,
+        pickup: pickupMode === "ASAP" ? { type: "ASAP" } : { type: "SCHEDULED", time: slot },
+        note: note.trim() || undefined,
+        total: subtotal,
+        items: lines.map((l) => ({
+          productName: l.product.name,
+          quantity: l.quantity,
+          summary: l.summary,
+          kitchenLines: describeForKitchen(l.product, l.options),
+          note: l.note,
+        })),
+      });
+      window.location.assign(`/demo/paiement/${order.id}`);
+      return;
+    }
     const body: CheckoutRequest = {
       attemptId: newAttemptId(),
       items: lines.map((l) => ({ productId: l.productId, options: l.options, quantity: l.quantity, note: l.note })),

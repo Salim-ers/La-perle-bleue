@@ -7,7 +7,7 @@ import type { KitchenOrder } from "@/features/kitchen/types";
 import { REFUSAL_REASONS, type KitchenAction, type OrderStatus, type RefusalReason } from "@/features/order/types";
 import { formatEuros } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { sendKitchenAction, useAlarm, useKitchenOrders, useWakeLock } from "./useKitchen";
+import { apiKitchenSource, useAlarm, useKitchenOrders, useWakeLock, type KitchenSource } from "./useKitchen";
 
 const COLUMNS: { title: string; statuses: OrderStatus[]; tone: string }[] = [
   { title: "Nouvelles", statuses: ["NEW"], tone: "border-[#f79009]" },
@@ -29,8 +29,8 @@ const STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
   READY: "Prête",
 };
 
-export function KitchenApp() {
-  const { snapshot, online, refresh } = useKitchenOrders();
+export function KitchenApp({ source = apiKitchenSource, demo = false }: { source?: KitchenSource; demo?: boolean }) {
+  const { snapshot, online, refresh } = useKitchenOrders(source);
   const [started, setStarted] = useState(false);
   const [mutedIds, setMutedIds] = useState<string[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
@@ -54,7 +54,7 @@ export function KitchenApp() {
     if (busy) return; // anti double clic
     setBusy(`${order.id}:${action}`);
     setError(null);
-    const message = await sendKitchenAction(order.id, action, reason);
+    const message = await source.act(order.id, action, reason);
     if (message) setError(`#${order.number} : ${message}`);
     else if (action === "refuse" || action === "complete") setDetailId(null);
     setRefuseId(null);
@@ -97,6 +97,7 @@ export function KitchenApp() {
     <main className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-white/10 bg-[#0b1220]/95 px-4 py-3 backdrop-blur">
         <h1 className="text-2xl font-black">Cuisine</h1>
+        {demo && <span className="rounded-full bg-[#7a2e0e] px-3 py-1.5 text-sm font-bold uppercase">Démo</span>}
         <span
           role="status"
           className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 text-base font-bold", online ? "bg-[#12b76a]/15 text-[#6ce9a6]" : "animate-pulse bg-[#f04438] text-white")}
@@ -110,7 +111,7 @@ export function KitchenApp() {
           </button>
         )}
         <div className="ml-auto flex items-center gap-2">
-          {snapshot && (
+          {snapshot && !demo && (
             <button
               type="button"
               onClick={togglePause}
@@ -128,9 +129,11 @@ export function KitchenApp() {
               <BellOff className="size-5" aria-hidden="true" /> Mute
             </button>
           )}
-          <Link href="/admin/reglages" className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-base font-bold">
-            <Settings className="size-5" aria-hidden="true" /> Réglages
-          </Link>
+          {!demo && (
+            <Link href="/admin/reglages" className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-base font-bold">
+              <Settings className="size-5" aria-hidden="true" /> Réglages
+            </Link>
+          )}
         </div>
       </header>
 

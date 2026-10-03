@@ -20,7 +20,22 @@ const FINAL: OrderStatus[] = ["READY", "COMPLETED", "CANCELLED"];
 const PAID: OrderStatus[] = ["NEW", "ACCEPTED", "PREPARING", "READY", "COMPLETED"];
 
 /** Suivi en direct : interroge le serveur toutes les 4 s, s'arrête quand la commande est prête, récupérée ou annulée. */
-export function OrderTracker({ initial, phoneHref }: { initial: PublicOrderStatus; phoneHref: string | null }) {
+async function fetchStatus(id: string) {
+  const res = await fetch(`/api/orders/${id}/status`, { cache: "no-store" });
+  if (!res.ok) throw new Error(String(res.status));
+  return (await res.json()) as PublicOrderStatus;
+}
+
+export function OrderTracker({
+  initial,
+  phoneHref,
+  load = fetchStatus,
+}: {
+  initial: PublicOrderStatus;
+  phoneHref: string | null;
+  /** Lecture du statut (API par défaut ; mode démonstration : navigateur). */
+  load?: (id: string) => Promise<PublicOrderStatus>;
+}) {
   const [order, setOrder] = useState(initial);
   const [offline, setOffline] = useState(false);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -32,9 +47,7 @@ export function OrderTracker({ initial, phoneHref }: { initial: PublicOrderStatu
     let stopped = false;
     const tick = async () => {
       try {
-        const res = await fetch(`/api/orders/${order.id}/status`, { cache: "no-store" });
-        if (!res.ok) throw new Error();
-        const next = (await res.json()) as PublicOrderStatus;
+        const next = await load(order.id);
         if (!stopped) {
           setOrder(next);
           setOffline(false);
@@ -48,7 +61,7 @@ export function OrderTracker({ initial, phoneHref }: { initial: PublicOrderStatu
       stopped = true;
       window.clearInterval(id);
     };
-  }, [order.id, order.status]);
+  }, [order.id, order.status, load]);
 
   // Paiement autorisé : le panier a été transmis, on le vide (une seule fois).
   useEffect(() => {

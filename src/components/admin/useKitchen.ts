@@ -10,7 +10,21 @@ const POLL_MS = 3000;
  * Commandes cuisine par interrogation régulière (pas de WebSocket) :
  * GET /api/kitchen/orders toutes les 3 s, nouvel essai automatique si le réseau tombe.
  */
-export function useKitchenOrders() {
+export interface KitchenSource {
+  load: () => Promise<KitchenSnapshot | "unauthorized">;
+  act: (orderId: string, action: KitchenAction, reason?: RefusalReason) => Promise<string | null>;
+}
+
+async function loadFromApi(): Promise<KitchenSnapshot | "unauthorized"> {
+  const res = await fetch("/api/kitchen/orders", { cache: "no-store" });
+  if (res.status === 401) return "unauthorized";
+  if (!res.ok) throw new Error(String(res.status));
+  return (await res.json()) as KitchenSnapshot;
+}
+
+export const apiKitchenSource: KitchenSource = { load: loadFromApi, act: (id, action, reason) => sendKitchenAction(id, action, reason) };
+
+export function useKitchenOrders(source: KitchenSource = apiKitchenSource) {
   const [snapshot, setSnapshot] = useState<KitchenSnapshot | null>(null);
   const [online, setOnline] = useState(true);
   const [lastSync, setLastSync] = useState<number | null>(null);
@@ -20,13 +34,12 @@ export function useKitchenOrders() {
     if (inFlight.current) return;
     inFlight.current = true;
     try {
-      const res = await fetch("/api/kitchen/orders", { cache: "no-store" });
-      if (res.status === 401) {
+      const result = await source.load();
+      if (result === "unauthorized") {
         window.location.replace("/admin/login?suite=/admin/cuisine");
         return;
       }
-      if (!res.ok) throw new Error(String(res.status));
-      setSnapshot((await res.json()) as KitchenSnapshot);
+      setSnapshot(result);
       setOnline(true);
       setLastSync(Date.now());
     } catch {
@@ -34,17 +47,19 @@ export function useKitchenOrders() {
     } finally {
       inFlight.current = false;
     }
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     void refresh();
     const id = window.setInterval(refresh, POLL_MS);
     const onVisible = () => document.visibilityState === "visible" && void refresh();
     window.addEventListener("online", refresh);
+    window.addEventListener("storage", refresh); // mode démo : autre onglet du même navigateur
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.clearInterval(id);
       window.removeEventListener("online", refresh);
+      window.removeEventListener("storage", refresh);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [refresh]);

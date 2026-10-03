@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { CART_STORAGE_KEY, useCartStore } from "@/features/cart/store";
+import { useDemo } from "@/features/demo/store";
 import { useLiveStore } from "@/features/live/store";
 
 /**
@@ -10,6 +11,11 @@ import { useLiveStore } from "@/features/live/store";
  */
 export function CartHydrator() {
   useEffect(() => {
+    // Lien de démonstration : ?demo=1 active le mode démo sur cet appareil, ?demo=0 le coupe.
+    const demo = new URLSearchParams(window.location.search).get("demo");
+    if (demo === "1") useDemo.getState().set(true);
+    else if (demo === "0") useDemo.getState().set(false);
+    else useDemo.getState().sync();
     void useCartStore.persist.rehydrate();
     const refreshLive = useLiveStore.getState().refresh;
     void refreshLive();

@@ -5,6 +5,7 @@ import { Providers } from "@/components/layout/Providers";
 import { RestaurantJsonLd } from "@/components/layout/JsonLd";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartToast } from "@/components/cart/CartToast";
+import { DemoBanner } from "@/components/demo/DemoBanner";
 import { ProductConfigurator } from "@/components/order/ProductConfigurator";
 import { directionsHref, phoneHref, showReviews } from "@/lib/contact";
 import { nav } from "@/lib/site";
@@ -22,6 +23,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         <CartToast />
         <CartDrawer />
         <ProductConfigurator />
+        <DemoBanner />
       </Providers>
       <RestaurantJsonLd />
     </>

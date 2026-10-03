@@ -5,6 +5,7 @@
  */
 import { create } from "zustand";
 import { orderingSettings } from "@/data/ordering";
+import { DEMO_PREPARATION_DELAY, isDemoActive } from "@/features/demo/store";
 import type { LiveSettings } from "@/features/order/types";
 
 export type Live = LiveSettings & { reason?: "paused" | "setup" };
@@ -17,6 +18,11 @@ interface LiveState {
 export const useLiveStore = create<LiveState>()((set) => ({
   live: null,
   refresh: async () => {
+    // Mode démonstration : commandes ouvertes sur cet appareil, sans base ni paiement.
+    if (isDemoActive()) {
+      set({ live: { ordersEnabled: true, preparationDelay: DEMO_PREPARATION_DELAY, unavailableProducts: [], unavailableOptions: [] } });
+      return;
+    }
     try {
       const res = await fetch("/api/live", { cache: "no-store" });
       if (res.ok) set({ live: (await res.json()) as Live });
