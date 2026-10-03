@@ -1,11 +1,12 @@
 /**
- * Créneaux de retrait (heure de Paris). Utilisé par le formulaire de commande
- * et revérifié par /api/checkout au moment du paiement.
+ * Créneaux de retrait (heure de Paris), calculés à partir des horaires,
+ * du délai de préparation et du nombre maximum de commandes par créneau.
+ * Fonction pure : le serveur lui fournit les réglages et le nombre de
+ * commandes déjà prises par créneau, puis revérifie au moment du paiement.
  */
-import { orderingSettings, type OrderingSettings } from "@/data/ordering";
-import { restaurant, type Day, type TimeRange } from "@/data/restaurant";
-import { WEEK, parisNow, toMinutes } from "@/lib/hours";
-import type { PickupTime } from "./types";
+import { orderingSettings } from "@/data/ordering";
+import type { Day, TimeRange } from "@/data/restaurant";
+import { WEEK, toMinutes } from "@/lib/hours";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -18,34 +19,61 @@ export const formatSlot = (time: string) => {
   return m === "00" ? `${Number(h)} h` : `${Number(h)} h ${m}`;
 };
 
+export interface PickupSlot {
+  time: string;
+  available: boolean;
+}
+
 export interface PickupAvailability {
-  /** Retrait « dès que possible » ouvert maintenant. */
-  asap: boolean;
-  /** Créneaux restants aujourd'hui, "HH:MM". */
-  slots: string[];
+  ordersEnabled: boolean;
+  /** Retrait « dès que possible » ouvert maintenant, et heure estimée. */
+  asap: { available: boolean; readyAt: string | null };
+  slots: PickupSlot[];
+  preparationDelay: number;
 }
 
-export function getPickupAvailability(
-  now = parisNow(),
-  hours: Record<Day, TimeRange[]> = restaurant.openingHours,
-  s: OrderingSettings = orderingSettings,
-): PickupAvailability {
-  const slots: string[] = [];
-  let asap = false;
-  // TODO(phase 2) : précommande pour le lendemain et services ouverts après minuit (veille).
-  for (const r of hours[WEEK[now.dayIndex].id]) {
-    const open = toMinutes(r.open);
-    let close = toMinutes(r.close);
-    if (close <= open) close += 24 * 60;
-    const last = close - s.lastPickupBeforeClose;
-    if (now.minutes >= open && now.minutes + s.prepTime.min <= last) asap = true;
-    const earliest = Math.max(open + s.prepTime.min, now.minutes + s.prepTime.max);
-    const first = Math.ceil(earliest / s.slotInterval) * s.slotInterval;
-    for (let t = first; t <= last; t += s.slotInterval) slots.push(minutesToTime(t));
+export interface PickupInput {
+  now: { dayIndex: number; minutes: number };
+  hours: Record<Day, TimeRange[]>;
+  ordersEnabled: boolean;
+  preparationDelay: number;
+  maxOrdersPerSlot: number;
+  /** Nombre de commandes déjà prises par créneau "HH:MM". */
+  slotCounts: Record<string, number>;
+  slotInterval?: number;
+  lastPickupBeforeClose?: number;
+}
+
+/** Créneau de rattachement d'une heure (arrondi au créneau supérieur). */
+export const slotFor = (minutes: number, interval = orderingSettings.slotInterval) =>
+  minutesToTime(Math.ceil(minutes / interval) * interval);
+
+export function computePickupAvailability(input: PickupInput): PickupAvailability {
+  const interval = input.slotInterval ?? orderingSettings.slotInterval;
+  const buffer = input.lastPickupBeforeClose ?? orderingSettings.lastPickupBeforeClose;
+  const { now, preparationDelay: delay } = input;
+  const slots: PickupSlot[] = [];
+  let asap: PickupAvailability["asap"] = { available: false, readyAt: null };
+  const hasRoom = (time: string) => (input.slotCounts[time] ?? 0) < input.maxOrdersPerSlot;
+
+  if (input.ordersEnabled) {
+    // TODO(phase 2) : précommande pour un autre jour et services ouverts après minuit (veille).
+    for (const r of input.hours[WEEK[now.dayIndex].id] ?? []) {
+      const open = toMinutes(r.open);
+      let close = toMinutes(r.close);
+      if (close <= open) close += 24 * 60;
+      const last = close - buffer;
+      const ready = now.minutes + delay;
+      if (now.minutes >= open && ready <= last && hasRoom(slotFor(ready, interval))) {
+        asap = { available: true, readyAt: minutesToTime(ready) };
+      }
+      const earliest = Math.max(open + delay, now.minutes + delay);
+      const first = Math.ceil(earliest / interval) * interval;
+      for (let t = first; t <= last; t += interval) {
+        const time = minutesToTime(t);
+        slots.push({ time, available: hasRoom(time) });
+      }
+    }
   }
-  return { asap, slots };
-}
-
-export function isPickupAvailable(pickup: PickupTime, availability = getPickupAvailability()) {
-  return pickup.type === "ASAP" ? availability.asap : availability.slots.includes(pickup.time);
+  return { ordersEnabled: input.ordersEnabled, asap, slots, preparationDelay: delay };
 }

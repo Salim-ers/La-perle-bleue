@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
-import { ArrowRight, Store, X } from "lucide-react";
-import { useCartCount, useCartLines, useCartSubtotal } from "@/features/cart/store";
+import { AlertTriangle, ArrowRight, Store, X } from "lucide-react";
+import { useCartCount, useCartLines } from "@/features/cart/store";
 import { useOrderUI } from "@/features/cart/ui";
+import { useOrderingState } from "@/features/live/store";
 import { formatEuros } from "@/lib/money";
 import { buttonClasses } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
@@ -18,8 +19,10 @@ export function CartDrawer() {
   const close = useOrderUI((s) => s.closeCart);
   const lines = useCartLines();
   const count = useCartCount();
-  const subtotal = useCartSubtotal();
+  const subtotal = lines.reduce((sum, l) => sum + l.total, 0);
   const onCheckout = usePathname() === "/commande";
+  const ordering = useOrderingState();
+  const blocked = !ordering.canOrder ? ordering.message : lines.some((l) => l.unavailable) ? "Un article est indisponible : modifiez-le ou supprimez-le." : null;
 
   return (
     <Sheet open={open} onClose={close} labelledBy="panier-titre" variant="drawer">
@@ -67,7 +70,6 @@ export function CartDrawer() {
                 <dt>Sous-total</dt>
                 <dd className="tabular-nums">{formatEuros(subtotal)}</dd>
               </div>
-              {/* Phase 2 : frais éventuels / remises, calculés par le serveur. */}
               <div className="flex items-baseline justify-between pt-1 text-night">
                 <dt className="text-lg font-bold">Total</dt>
                 <dd className="font-display text-3xl font-extrabold tabular-nums">{formatEuros(subtotal)}</dd>
@@ -77,7 +79,17 @@ export function CartDrawer() {
               <Store className="size-4 shrink-0 text-royal" aria-hidden="true" />
               Commande à retirer à La Perle Bleue.
             </p>
-            {onCheckout ? (
+            {blocked && (
+              <p role="status" className="mt-3 flex items-start gap-2 rounded-xl bg-sand/30 px-3 py-2 text-sm font-semibold text-night">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ember" aria-hidden="true" />
+                {blocked}
+              </p>
+            )}
+            {blocked ? (
+              <button type="button" disabled className={buttonClasses({ size: "lg", className: "mt-4 w-full" })}>
+                Passer la commande
+              </button>
+            ) : onCheckout ? (
               <button type="button" onClick={close} className={buttonClasses({ size: "lg", className: "mt-4 w-full" })}>
                 Continuer ma commande
                 <ArrowRight className="size-4" aria-hidden="true" />

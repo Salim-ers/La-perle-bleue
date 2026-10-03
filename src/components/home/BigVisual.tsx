@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { useRef } from "react";
 import { images } from "@/data/images";
 import { ButtonLink } from "@/components/ui/Button";
+import { OrderCta } from "@/components/order/OrderCta";
 
 export function BigVisual() {
   const ref = useRef<HTMLElement>(null);
@@ -57,10 +58,9 @@ export function BigVisual() {
         <p className="mt-5 max-w-[38ch] text-lg text-white/85 lg:text-xl">
           Du grill, des portions généreuses et des recettes qui calent vraiment.
         </p>
-        <ButtonLink href="/menu" size="lg" className="mt-8">
+        <OrderCta size="lg" className="mt-8" tone="dark" arrow>
           Commander maintenant
-          <ArrowRight className="size-[18px] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-        </ButtonLink>
+        </OrderCta>
       </m.div>
     </section>
   );

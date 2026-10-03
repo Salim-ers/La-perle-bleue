@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { OpenStatus } from "./OpenStatus";
 import { OpeningHours } from "./OpeningHours";
 import { MapEmbed } from "./MapEmbed";
+import { OrderCta } from "@/components/order/OrderCta";
 
 /**
  * « Venez nous voir ». Adresse, téléphone et liens viennent de src/data/restaurant.ts :
@@ -53,9 +54,7 @@ export function RestaurantInfo({ headingLevel = "h2" }: { headingLevel?: "h1" | 
             </address>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <ButtonLink href="/menu" className="min-h-14 sm:min-h-12">
-                Commander à emporter
-              </ButtonLink>
+              <OrderCta className="min-h-14 sm:min-h-12">Commander à emporter</OrderCta>
               <ButtonLink href={directionsHref} variant="outline-dark" icon={<MapPin className="size-4" aria-hidden="true" />} className="min-h-14 sm:min-h-12">
                 Itinéraire
               </ButtonLink>

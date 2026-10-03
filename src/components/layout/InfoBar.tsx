@@ -2,8 +2,8 @@
 
 import { Clock, Store, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
-import { orderingSettings } from "@/data/ordering";
 import { restaurant } from "@/data/restaurant";
+import { useOrderingState } from "@/features/live/store";
 import { WEEK, formatRanges, getOpenStatus, parisNow, type OpenStatus } from "@/lib/hours";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function InfoBar({ className }: { className?: string }) {
     return () => window.clearInterval(id);
   }, []);
 
-  const { min, max } = orderingSettings.prepTime;
+  const ordering = useOrderingState();
   const open = state?.status.open;
   const item = "flex shrink-0 items-center gap-2";
 
@@ -68,10 +68,13 @@ export function InfoBar({ className }: { className?: string }) {
         </li>
         <li className={item}>
           <Timer className="size-4 text-royal" aria-hidden="true" />
-          Temps estimé :{" "}
-          <strong className="font-semibold">
-            {min}–{max} min
-          </strong>
+          {ordering.known && !ordering.canOrder ? (
+            <strong className="font-semibold text-ember">{ordering.message}</strong>
+          ) : (
+            <>
+              Temps estimé : <strong className="font-semibold">{ordering.preparationDelay}&nbsp;min</strong>
+            </>
+          )}
         </li>
       </ul>
     </div>

@@ -3,7 +3,12 @@
 import { m } from "framer-motion";
 import { Plus } from "lucide-react";
 import { startOrder } from "@/features/cart/ui";
+import { useLiveStore } from "@/features/live/store";
 import { cn } from "@/lib/utils";
+
+/** Rupture déclarée dans l'admin (relue en direct). */
+export const useProductOutOfStock = (productId: string) =>
+  useLiveStore((s) => !!s.live?.unavailableProducts.includes(productId));
 
 /** Bouton « + » des listes de la carte : ouvre le configurateur (ou ajoute directement). */
 export function AddToCartButton({
@@ -15,6 +20,14 @@ export function AddToCartButton({
   name: string;
   className?: string;
 }) {
+  const outOfStock = useProductOutOfStock(productId);
+  if (outOfStock) {
+    return (
+      <span className="shrink-0 rounded-full bg-night/6 px-3 py-2 text-xs font-bold tracking-wide text-slate uppercase">
+        Rupture<span className="sr-only"> : {name}</span>
+      </span>
+    );
+  }
   return (
     <m.button
       type="button"

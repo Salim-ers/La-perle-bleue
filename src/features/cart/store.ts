@@ -1,21 +1,23 @@
 /**
  * Panier (Zustand), persistant dans le localStorage.
  *
- * Le panier ne stocke que des identifiants (produit, options) et des
- * quantités. Les prix sont toujours recalculés depuis le catalogue avec
- * calculateItemPrice() : un prix modifié sur la carte s'applique aussi aux
- * paniers déjà enregistrés, et rien de ce qui est stocké ici n'est payé tel quel.
+ * Le panier ne stocke que des identifiants (produit, options), des quantités
+ * et des instructions. Les prix sont toujours recalculés depuis le catalogue
+ * avec calculateConfiguredProductPrice() : rien de ce qui est stocké ici
+ * n'est payé tel quel (le serveur recalcule encore au paiement).
  */
 import { useMemo } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { orderingSettings } from "@/data/ordering";
-import { getProduct } from "@/features/order/catalog";
-import { calculateItemPrice, describeSelection, selectionKey } from "@/features/order/pricing";
+import { useLiveStore, type Live } from "@/features/live/store";
+import { getProduct, withAvailability } from "@/features/order/catalog";
+import { calculateConfiguredProductPrice, describeSelection, selectionKey } from "@/features/order/pricing";
 import type { Cents, Product, Selection } from "@/features/order/types";
 import { validateSelection } from "@/features/order/validation";
 
 export interface CartItem {
+  /** Identifiant de ligne : deux configurations différentes = deux lignes. */
   lineId: string;
   productId: string;
   options: Selection;
@@ -31,6 +33,8 @@ interface CartState {
   /** Vrai une fois le panier relu depuis le navigateur. */
   hydrated: boolean;
   addItem: (item: NewCartItem) => void;
+  /** Remplace la configuration d'une ligne (bouton MODIFIER). */
+  updateItem: (lineId: string, item: NewCartItem) => void;
   removeItem: (lineId: string) => void;
   /** Quantité < 1 : la ligne est supprimée. */
   updateQuantity: (lineId: string, quantity: number) => void;
@@ -40,20 +44,17 @@ interface CartState {
 export const CART_STORAGE_KEY = "la-perle-bleue:panier";
 const MAX_AGE_MS = orderingSettings.cartMaxAgeHours * 60 * 60 * 1000;
 
-const clampQuantity = (q: number) =>
-  Math.min(orderingSettings.maxQuantityPerItem, Math.max(1, Math.round(q)));
+const clampQuantity = (q: number) => Math.min(orderingSettings.maxQuantityPerItem, Math.max(1, Math.round(q)));
 
 const newLineId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-const isSameLine = (a: NewCartItem, b: NewCartItem) =>
-  a.productId === b.productId &&
-  (a.note ?? "") === (b.note ?? "") &&
-  selectionKey(a.options) === selectionKey(b.options);
+/** Empreinte d'une configuration : même produit, mêmes options, même instruction. */
+export const configHash = (item: NewCartItem) => `${item.productId}#${selectionKey(item.options)}#${(item.note ?? "").trim()}`;
 
-/** Écarte les lignes devenues invalides (produit retiré, en rupture, options modifiées). */
+/** Écarte les lignes devenues invalides (produit retiré du catalogue, options modifiées). */
 function sanitize(items: unknown): CartItem[] {
   if (!Array.isArray(items)) return [];
   return items
@@ -62,7 +63,6 @@ function sanitize(items: unknown): CartItem[] {
       const product = getProduct(i.productId);
       return (
         !!product &&
-        product.available &&
         Number.isInteger(i.quantity) &&
         i.quantity >= 1 &&
         typeof i.options === "object" &&
@@ -80,16 +80,26 @@ export const useCartStore = create<CartState>()(
       hydrated: false,
       addItem: (item) =>
         set((s) => {
-          const existing = s.items.find((i) => isSameLine(i, item));
+          const hash = configHash(item);
+          const existing = s.items.find((i) => configHash(i) === hash);
           const items = existing
-            ? s.items.map((i) =>
-                i === existing ? { ...i, quantity: clampQuantity(i.quantity + item.quantity) } : i,
-              )
+            ? s.items.map((i) => (i === existing ? { ...i, quantity: clampQuantity(i.quantity + item.quantity) } : i))
             : [...s.items, { ...item, quantity: clampQuantity(item.quantity), lineId: newLineId() }];
           return { items, updatedAt: Date.now() };
         }),
-      removeItem: (lineId) =>
-        set((s) => ({ items: s.items.filter((i) => i.lineId !== lineId), updatedAt: Date.now() })),
+      updateItem: (lineId, item) =>
+        set((s) => {
+          const hash = configHash(item);
+          const twin = s.items.find((i) => i.lineId !== lineId && configHash(i) === hash);
+          // Si la nouvelle configuration existe déjà sur une autre ligne, on fusionne.
+          const items = twin
+            ? s.items
+                .filter((i) => i.lineId !== lineId)
+                .map((i) => (i === twin ? { ...i, quantity: clampQuantity(i.quantity + item.quantity) } : i))
+            : s.items.map((i) => (i.lineId === lineId ? { ...item, quantity: clampQuantity(item.quantity), lineId } : i));
+          return { items, updatedAt: Date.now() };
+        }),
+      removeItem: (lineId) => set((s) => ({ items: s.items.filter((i) => i.lineId !== lineId), updatedAt: Date.now() })),
       updateQuantity: (lineId, quantity) =>
         set((s) => ({
           items:
@@ -102,12 +112,13 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: CART_STORAGE_KEY,
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
-      // Relu par <CartHydrator /> après le premier rendu : le HTML serveur et le
-      // premier rendu navigateur affichent tous deux un panier vide.
+      // Relu par <CartHydrator /> après le premier rendu : HTML serveur et premier rendu identiques.
       skipHydration: true,
       partialize: (s) => ({ items: s.items, updatedAt: s.updatedAt }),
+      // v1 -> v2 : options remises en cohérence (nouveaux groupes formule / boisson).
+      migrate: (persisted) => persisted as Partial<CartState>,
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<CartState>;
         const expired = !saved.updatedAt || Date.now() - saved.updatedAt > MAX_AGE_MS;
@@ -129,14 +140,18 @@ export interface CartLine extends CartItem {
   unitPrice: Cents;
   total: Cents;
   summary: string[];
+  /** Produit ou option passé en rupture depuis l'ajout. */
+  unavailable: boolean;
 }
 
-export function toCartLines(items: CartItem[]): CartLine[] {
+export function toCartLines(items: CartItem[], live: Live | null = null): CartLine[] {
   return items.flatMap((item) => {
-    const product = getProduct(item.productId);
-    if (!product) return [];
-    const { unitPrice, total } = calculateItemPrice(product, item.options, item.quantity);
-    return [{ ...item, product, unitPrice, total, summary: describeSelection(product, item.options) }];
+    const base = getProduct(item.productId);
+    if (!base) return [];
+    const product = withAvailability(base, live);
+    const { unitPrice, total } = calculateConfiguredProductPrice(product, item.options, item.quantity);
+    const unavailable = !product.available || Object.keys(validateSelection(product, item.options)).length > 0;
+    return [{ ...item, product, unitPrice, total, unavailable, summary: describeSelection(product, item.options) }];
   });
 }
 
@@ -144,9 +159,11 @@ const subtotalOf = (items: CartItem[]) => toCartLines(items).reduce((sum, l) => 
 
 export function useCartLines() {
   const items = useCartStore((s) => s.items);
-  return useMemo(() => toCartLines(items), [items]);
+  const live = useLiveStore((s) => s.live);
+  return useMemo(() => toCartLines(items, live), [items, live]);
 }
 
 export const useCartCount = () => useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
 
 export const useCartSubtotal = () => useCartStore((s) => subtotalOf(s.items));
+

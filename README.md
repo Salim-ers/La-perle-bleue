@@ -1,7 +1,8 @@
 # La Perle Bleue — site et commande à emporter
 
-Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Framer Motion, Lucide, Zustand (panier).
-Les pages vitrines sont générées en statique ; seules `/api/*` et `/commande/succes` sont dynamiques.
+Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Framer Motion, Lucide, Zustand (panier),
+Neon PostgreSQL + Drizzle ORM, Mollie (paiement), Resend (e-mails). Hébergement Vercel.
+Les pages vitrines sont générées en statique ; la commande, le suivi, l'admin et les API sont dynamiques.
 
 ## Démarrer
 
@@ -48,44 +49,51 @@ Toute valeur `TODO_CONTENT` est détectée : l'information (ligne, bouton, carte
 - [ ] Vraies photos des plats : 29 plats sont illustrés par des images générées par IA (`src/assets/images/produits/`), à remplacer en gardant le même nom de fichier. La carte affiche « Photos non contractuelles ».
 - [ ] Validation des points `toConfirm` et `MENU_TODO` dans `src/data/menu.ts`
 - [ ] Validation des options de commande marquées `toConfirm` dans `src/data/options.ts` : liste des sauces et nombre offert, pain / galette, prix des suppléments (viande supplémentaire : 2€00 proposé), prix des formules menu
-- [ ] Conditions générales de vente (obligatoires avant d'ouvrir le paiement en ligne)
+- [ ] Conditions générales de vente : compléter les « à compléter » de `/cgv` (SIRET, médiateur…)
+- [ ] Allergènes de chaque plat (`src/data/allergens.ts`)
 - [ ] Mentions légales : forme juridique, SIRET, directeur de publication
 - [ ] Réseaux sociaux (Instagram, Facebook, TikTok) s'ils existent
 - [ ] Vrais avis Google et note globale, si le restaurateur le souhaite
 
-## Commande en ligne (V1 : Commander → Payer → Emporter)
+## Commande en ligne : Commander → Payer → Faire préparer → Récupérer
 
-Parcours : bouton « + » / « Ajouter » → configurateur → panier → `/commande` → paiement (préparé).
-Retrait sur place uniquement ; la livraison est prévue dans les types (`DELIVERY`) mais refusée par l'API.
+Mise en production pas à pas : **[README-PRODUCTION.md](README-PRODUCTION.md)**. Mode d'emploi du restaurant : **[GUIDE-RESTAURANT.md](GUIDE-RESTAURANT.md)**.
+
+Parcours : configurateur → panier → `/commande` → page de paiement Mollie (carte **autorisée**) → commande en cuisine (`/admin/cuisine`) → **ACCEPTER** déclenche le débit réel → préparation → prête → récupérée. Le client suit sa commande sur `/suivi/[id]` et reçoit 4 e-mails (reçue, acceptée, prête, annulée).
 
 | Rôle | Fichier |
 |---|---|
-| Types (Product, OptionGroup, Order, OrderItem, Customer, OrderStatus…) | `src/features/order/types.ts` |
-| Catalogue commandable, construit depuis la carte + les options | `src/features/order/catalog.ts` |
-| **Seule** fonction de prix : `calculateItemPrice()` | `src/features/order/pricing.ts` |
-| Validation partagée navigateur / serveur | `src/features/order/validation.ts` |
-| Créneaux de retrait (heure de Paris) | `src/features/order/pickup.ts` |
-| Recalcul serveur d'une commande | `src/features/order/checkout.ts` |
-| Panier Zustand persistant (`addItem`, `removeItem`, `updateQuantity`, `clearCart`, `cartCount`, `subtotal`) | `src/features/cart/store.ts` |
-| Configurateur, tiroir panier, notification | `src/features/cart/ui.ts`, `src/components/order`, `src/components/cart` |
-| API de paiement | `src/app/api/checkout/route.ts` |
-| Webhook Stripe (à implémenter) | `src/app/api/webhooks/stripe/route.ts` |
-| Schéma base de données (brouillon) | `supabase/schema.sql` |
+| Types (Product, OptionGroup, ProductConfiguration, statuts…) | `src/features/order/types.ts` |
+| Options configurables (sauces, crudités, pain, frites, formules, boissons, suppléments) | `src/data/options.ts` |
+| Allergènes par produit (jamais inventés) | `src/data/allergens.ts` |
+| **Seule** fonction de prix : `calculateConfiguredProductPrice()` | `src/features/order/pricing.ts` |
+| Validation partagée / schémas Zod des API | `src/features/order/validation.ts`, `schemas.ts` |
+| Panier persistant (Zustand) | `src/features/cart/store.ts` |
+| Schéma de base (Drizzle) et migrations SQL | `src/server/db/schema.ts`, `drizzle/` |
+| Création de commande + paiement | `src/server/checkout.ts`, `src/app/api/checkout/route.ts` |
+| Cycle de vie, capture, refus, webhook | `src/server/orders.ts`, `src/app/api/webhooks/mollie/route.ts` |
+| Mollie (autorisation + capture manuelle) | `src/server/payments/mollie.ts` |
+| E-mails (Resend) | `src/server/email.ts` |
+| Écran cuisine (PWA) et réglages | `src/app/admin/`, `src/components/admin/`, `public/admin/` |
 
-Règles de sécurité :
-- le panier ne stocke que des identifiants et des quantités ; les prix sont toujours recalculés ;
-- `/api/checkout` n'accepte que des identifiants, relit le catalogue, vérifie disponibilités, options et créneau, puis recalcule le total : le navigateur ne décide jamais du montant ;
-- seule la confirmation du webhook Stripe pourra passer une commande en `PAID` ; la page `/commande/succes` relit le statut côté serveur et n'affiche jamais une commande payée sans cette preuve.
+Règles de sécurité : le navigateur n'envoie que des identifiants (jamais de prix) ; le serveur relit le catalogue, les ruptures et les créneaux puis recalcule le total ; seul le statut relu chez Mollie fait avancer une commande ; chaque transition est une mise à jour conditionnelle (webhook rejoué, double clic : aucun effet en double).
 
-Tant que `STRIPE_SECRET_KEY` n'est pas définie, le bouton « Payer » valide tout le parcours puis affiche « paiement en ligne bientôt disponible » : rien n'est enregistré ni débité.
+### Tests
 
-### Phase 2
+```bash
+npm run test:logic          # prix, menus, boissons, sauces, ruptures, créneaux (sans base)
+```
 
-1. `npm install stripe @supabase/supabase-js`, créer les tables (`supabase/schema.sql`) et y importer la carte.
-2. Remplacer la construction du catalogue par une lecture Supabase (garder `getProduct()`).
-3. Implémenter les TODO de `/api/checkout` (commande `PENDING_PAYMENT` + Checkout Session) et du webhook (`PAID`).
-4. `/admin` : commandes en temps réel, ruptures (`available`), horaires, temps de préparation (`settings`).
-5. `/suivi/[orderId]` : suivi de commande.
+Tester tout le parcours en local, sans compte Neon ni Mollie (base Postgres embarquée + paiement fictif) : dans `.env.local`
+
+```bash
+DATABASE_URL=pglite:./.data/pglite
+PAYMENT_PROVIDER=mock
+ADMIN_PASSWORD=un-mot-de-passe-local
+ADMIN_SESSION_SECRET=une-chaine-aleatoire-de-32-caracteres-minimum
+```
+
+puis `npm run build && npm start` : la page de paiement est remplacée par `/paiement-test/…` (autoriser / refuser / abandonner). Ces deux réglages sont refusés en production.
 
 ## Qualité mesurée (Lighthouse mobile, serveur local)
 

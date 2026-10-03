@@ -150,7 +150,7 @@ function SheetPanel({ onClose, labelledBy, variant = "modal", initialFocus, clas
         className={cn(
           "relative flex w-full flex-col overflow-hidden bg-white text-night outline-none",
           "shadow-[0_-20px_60px_-24px_rgba(6,19,46,0.55)]",
-          !isDesktop && "max-h-[92svh] rounded-t-[26px] pb-[env(safe-area-inset-bottom)]",
+          !isDesktop && "max-h-[95dvh] rounded-t-[26px] pb-[env(safe-area-inset-bottom)]",
           isDesktop && variant === "drawer" && "h-full max-w-[460px]",
           isDesktop && variant === "modal" && "max-h-[min(88vh,860px)] max-w-[940px] rounded-[26px]",
           className,

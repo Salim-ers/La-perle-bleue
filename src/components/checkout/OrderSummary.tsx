@@ -3,11 +3,11 @@
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Lock, Store, Timer } from "lucide-react";
 import { useId, useState } from "react";
-import { orderingSettings } from "@/data/ordering";
 import type { CartLine } from "@/features/cart/store";
 import { useOrderUI } from "@/features/cart/ui";
 import { formatEuros } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { PrepTime } from "@/components/order/PrepTime";
 
 /** Récapitulatif de commande : panneau fixe sur desktop, repliable sur mobile. */
 export function OrderSummary({
@@ -23,7 +23,6 @@ export function OrderSummary({
   const [open, setOpen] = useState(false);
   const openCart = useOrderUI((s) => s.openCart);
   const count = lines.reduce((n, l) => n + l.quantity, 0);
-  const { min, max } = orderingSettings.prepTime;
 
   const body = (
     <>
@@ -78,7 +77,7 @@ export function OrderSummary({
         </li>
         <li className="flex items-center gap-2.5">
           <Timer className="size-4 shrink-0 text-royal" aria-hidden="true" />
-          Prête en {min} à {max} minutes environ
+          Prête en <PrepTime /> environ
         </li>
       </ul>
     </>

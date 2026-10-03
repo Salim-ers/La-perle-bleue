@@ -1,45 +1,53 @@
 /**
  * Calcul serveur d'une commande. Le navigateur n'envoie que des identifiants :
- * produits et options sont relus dans le catalogue, puis les prix recalculés
- * avec calculateItemPrice(). Le montant payé ne vient jamais du navigateur.
+ * produits et options sont relus dans le catalogue (ruptures appliquées),
+ * puis les prix recalculés avec calculateConfiguredProductPrice().
+ * Le montant payé ne vient jamais du navigateur.
  */
-import { getProduct } from "./catalog";
-import { calculateItemPrice } from "./pricing";
-import type { Cents, CheckoutRequestItem, OrderItem } from "./types";
+import { getProduct, withAvailability } from "./catalog";
+import { calculateConfiguredProductPrice, describeForKitchen, describeSelection, isGroupVisible } from "./pricing";
+import type { Cents, LiveSettings, OrderLine, ProductConfiguration } from "./types";
 import { validateSelection } from "./validation";
 
 export type PricedOrder =
-  | { ok: true; items: OrderItem[]; subtotal: Cents; total: Cents }
+  | { ok: true; lines: OrderLine[]; subtotal: Cents; total: Cents }
   | { ok: false; message: string };
 
-export function priceOrder(items: CheckoutRequestItem[]): PricedOrder {
-  const lines: OrderItem[] = [];
-  for (const [index, item] of items.entries()) {
-    const product = getProduct(item.productId);
+export function priceOrder(
+  items: ProductConfiguration[],
+  live: Pick<LiveSettings, "unavailableProducts" | "unavailableOptions">,
+): PricedOrder {
+  const lines: OrderLine[] = [];
+  for (const item of items) {
+    const base = getProduct(item.productId);
+    const product = base ? withAvailability(base, live) : null;
     if (!product || !product.available) {
-      return { ok: false, message: `${product?.name ?? "Un article"} n'est plus disponible. Retirez-le du panier.` };
+      return { ok: false, message: `${base?.name ?? "Un article"} n'est plus disponible. Retirez-le du panier.` };
     }
     if (Object.keys(validateSelection(product, item.options)).length > 0) {
       return { ok: false, message: `Les options de « ${product.name} » ne sont plus valides. Modifiez cet article.` };
     }
-    const { unitPrice, total } = calculateItemPrice(product, item.options, item.quantity);
+    const { unitPrice, total } = calculateConfiguredProductPrice(product, item.options, item.quantity);
     lines.push({
-      id: `line-${index + 1}`,
       productId: product.id,
       productName: product.name,
-      options: product.optionGroups.flatMap((g) =>
-        (item.options[g.id] ?? []).map((id) => {
-          const o = g.options.find((x) => x.id === id)!;
-          return { groupId: g.id, groupName: g.name, optionId: o.id, optionName: o.name, priceDelta: o.priceDelta };
-        }),
-      ),
       quantity: item.quantity,
       unitPrice,
       totalPrice: total,
-      note: item.note,
+      note: item.note || undefined,
+      summary: describeSelection(product, item.options),
+      kitchenLines: describeForKitchen(product, item.options),
+      options: product.optionGroups
+        .filter((g) => isGroupVisible(g, item.options))
+        .flatMap((g) =>
+          (item.options[g.id] ?? []).map((optionId) => {
+            const o = g.options.find((x) => x.id === optionId)!;
+            return { groupId: g.id, groupName: g.name, optionId: o.id, optionName: o.name, priceDelta: o.priceDelta };
+          }),
+        ),
     });
   }
   const subtotal = lines.reduce((sum, l) => sum + l.totalPrice, 0);
   // Pas de frais ni de remise en V1 : total = sous-total.
-  return { ok: true, items: lines, subtotal, total: subtotal };
+  return { ok: true, lines, subtotal, total: subtotal };
 }

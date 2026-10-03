@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion perdue — Cuisine</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0b1220; color: #fff; font-family: system-ui, sans-serif; text-align: center; }
+  h1 { font-size: 2.6rem; margin: 0 0 .5rem; }
+  p { font-size: 1.3rem; color: #c7d0e0; max-width: 28rem; margin: 0 auto; }
+  button { margin-top: 2rem; min-height: 4.5rem; padding: 0 2.5rem; border: 0; border-radius: 1.2rem; background: #12b76a; color: #052e1a; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <main>
+    <h1>🔴 Connexion perdue</h1>
+    <p>La tablette n'a plus internet. Les commandes sont conservées sur le serveur : elles réapparaîtront dès le retour du Wi-Fi.</p>
+    <button type="button" onclick="location.reload()">Réessayer</button>
+  </main>
+  <script>window.addEventListener("online", () => location.reload());</script>
+</body>
+</html>

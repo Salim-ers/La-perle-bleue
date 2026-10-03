@@ -2,16 +2,24 @@
 
 import Link from "next/link";
 import { ArrowLeft, Store } from "lucide-react";
-import { useCartLines, useCartStore, useCartSubtotal } from "@/features/cart/store";
+import { useCartLines, useCartStore } from "@/features/cart/store";
 import { EmptyCart } from "@/components/cart/EmptyCart";
 import { CheckoutForm } from "./CheckoutForm";
 import { OrderSummary } from "./OrderSummary";
 
 /** Page /commande : formulaire à gauche, récapitulatif fixe à droite (repliable en haut sur mobile). */
-export function CheckoutView({ address, phoneHref }: { address: string | null; phoneHref: string | null }) {
+export function CheckoutView({
+  address,
+  phoneHref,
+  cancelledPayment,
+}: {
+  address: string | null;
+  phoneHref: string | null;
+  cancelledPayment: boolean;
+}) {
   const hydrated = useCartStore((s) => s.hydrated);
   const lines = useCartLines();
-  const subtotal = useCartSubtotal();
+  const subtotal = lines.reduce((sum, l) => sum + l.total, 0);
 
   if (!hydrated) {
     return (
@@ -49,7 +57,7 @@ export function CheckoutView({ address, phoneHref }: { address: string | null; p
         <div className="lg:hidden">
           <OrderSummary lines={lines} subtotal={subtotal} collapsible />
         </div>
-        <CheckoutForm lines={lines} subtotal={subtotal} address={address} phoneHref={phoneHref} />
+        <CheckoutForm lines={lines} subtotal={subtotal} address={address} phoneHref={phoneHref} cancelledPayment={cancelledPayment} />
         <aside className="sticky top-[calc(var(--header-h)+24px)] hidden lg:block">
           <OrderSummary lines={lines} subtotal={subtotal} />
         </aside>

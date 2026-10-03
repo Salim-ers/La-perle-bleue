@@ -3,7 +3,7 @@
  * (Perle_Image_ChatGPT_30_sept__2026__16_20_31-1.png) + affiche « Berliner ».
  *
  * Prix en centimes (entiers) pour éviter les erreurs d'arrondi : prêt pour
- * un futur panier / Stripe. `available` servira à la gestion des ruptures.
+ * le panier et le paiement. Les ruptures se gèrent dans l'admin (/admin/reglages).
  * Tout champ marqué `toConfirm` doit être validé par le restaurateur.
  */
 

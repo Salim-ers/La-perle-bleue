@@ -3,6 +3,7 @@ import { Perle } from "@/components/ui/Perle";
 import { ButtonLink } from "@/components/ui/Button";
 import { restaurant } from "@/data/restaurant";
 import { hoursSummary } from "@/lib/hours";
+import { OrderCta } from "@/components/order/OrderCta";
 
 export function FinalCta({
   directionsHref,
@@ -28,10 +29,7 @@ export function FinalCta({
             Commandez en ligne, récupérez au comptoir. Ou venez vous installer{summary ? `, ${summary}` : ""}.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
-            <ButtonLink href="/menu" size="lg">
-              Commander
-              <ArrowRight className="size-[18px]" aria-hidden="true" />
-            </ButtonLink>
+            <OrderCta size="lg" tone="dark" arrow />
             <ButtonLink href={directionsHref} variant="ghost" size="lg" icon={<MapPin className="size-4" aria-hidden="true" />}>
               Itinéraire
             </ButtonLink>

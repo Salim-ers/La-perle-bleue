@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { ArrowRight, Flame, Lock, Timer } from "lucide-react";
+import type { ReactNode } from "react";
+import { Flame, Lock, Timer } from "lucide-react";
 import { images, type ImageKey } from "@/data/images";
-import { orderingSettings } from "@/data/ordering";
-import { ButtonLink } from "@/components/ui/Button";
 import { StaggerItem, StaggerList } from "@/components/ui/Stagger";
+import { OrderCta } from "@/components/order/OrderCta";
+import { PrepTime } from "@/components/order/PrepTime";
 
 const steps: { n: string; title: string; text: string; image: ImageKey }[] = [
   { n: "01", title: "Choisissez", text: "Kebab, tacos, burger ou assiette.", image: "hero-assiettes" },
@@ -11,10 +12,9 @@ const steps: { n: string; title: string; text: string; image: ImageKey }[] = [
   { n: "03", title: "Récupérez", text: "Votre commande vous attend au restaurant.", image: "comptoir-commandes" },
 ];
 
-const { min, max } = orderingSettings.prepTime;
-const trust = [
-  { icon: Lock, title: "Paiement sécurisé", text: "Carte bancaire via Stripe, bientôt disponible." },
-  { icon: Timer, title: "Retrait rapide", text: `Prête en ${min} à ${max} minutes environ.` },
+const trust: { icon: typeof Lock; title: string; text: ReactNode }[] = [
+  { icon: Lock, title: "Paiement sécurisé", text: "Carte bancaire via Mollie, débitée seulement quand la cuisine accepte." },
+  { icon: Timer, title: "Retrait rapide", text: <>Prête en <PrepTime /> environ.</> },
   { icon: Flame, title: "Préparé à la commande", text: "Lancée en cuisine dès sa validation." },
 ];
 
@@ -30,10 +30,7 @@ export function HowItWorks() {
             </h2>
           </div>
           <div className="hidden lg:block">
-            <ButtonLink href="/menu" size="lg">
-              Commander
-              <ArrowRight className="size-[18px]" aria-hidden="true" />
-            </ButtonLink>
+            <OrderCta size="lg" tone="dark" arrow />
           </div>
         </div>
 
@@ -83,10 +80,9 @@ export function HowItWorks() {
           ))}
         </ul>
 
-        <ButtonLink href="/menu" size="lg" className="mt-12 w-full sm:w-auto lg:hidden">
-          Commander
-          <ArrowRight className="size-[18px]" aria-hidden="true" />
-        </ButtonLink>
+        <div className="mt-12 lg:hidden">
+          <OrderCta size="lg" tone="dark" className="w-full sm:w-auto" arrow />
+        </div>
       </div>
     </section>
   );

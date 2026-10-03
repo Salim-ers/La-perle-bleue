@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { images, type ImageKey } from "@/data/images";
 import { formatPrice, spokenPrice } from "@/data/menu";
 import { startOrder } from "@/features/cart/ui";
+import { useProductOutOfStock } from "./AddToCartButton";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -48,11 +49,13 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const img = image ? images[image] : null;
+  const outOfStock = useProductOutOfStock(id);
+  const inStock = available && !outOfStock;
   return (
     <article
       className={cn(
         "group relative flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_1px_0_rgba(6,19,46,0.04),0_24px_48px_-30px_rgba(6,19,46,0.45)] transition-shadow duration-500 hover:shadow-[0_1px_0_rgba(6,19,46,0.04),0_30px_60px_-28px_rgba(6,19,46,0.55)]",
-        !available && "opacity-70",
+        !inStock && "opacity-70",
         className,
       )}
     >
@@ -79,7 +82,7 @@ export function ProductCard({
             {badge}
           </span>
         )}
-        {!available && (
+        {!inStock && (
           <span className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-full bg-night/85 py-2 text-center text-sm font-semibold text-white">
             Momentanément indisponible
           </span>
@@ -100,7 +103,7 @@ export function ProductCard({
           <m.button
             type="button"
             onClick={() => startOrder(id)}
-            disabled={!available}
+            disabled={!inStock}
             whileTap={{ scale: 0.94 }}
             aria-label={`Ajouter : ${name}`}
             className={cn(

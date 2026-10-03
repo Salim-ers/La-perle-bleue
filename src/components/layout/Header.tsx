@@ -11,6 +11,7 @@ import { OpenStatus } from "@/components/info/OpenStatus";
 import { CartButton } from "@/components/cart/CartButton";
 import { lockScroll } from "@/lib/scroll-lock";
 import { cn } from "@/lib/utils";
+import { OrderCta } from "@/components/order/OrderCta";
 
 type NavItem = { href: string; label: string };
 
@@ -93,7 +94,7 @@ export function Header({
           <div className="flex items-center gap-1.5 sm:gap-3">
             <CartButton />
             <div className="hidden sm:block">
-              <ButtonLink href="/menu">Commander</ButtonLink>
+              <OrderCta short />
             </div>
             <button
               type="button"

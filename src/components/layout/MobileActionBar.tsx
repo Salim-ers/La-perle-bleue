@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
-import { ArrowRight, MapPin, Phone, ShoppingBag } from "lucide-react";
+import { ArrowRight, MapPin, PauseCircle, Phone, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCartCount, useCartSubtotal } from "@/features/cart/store";
 import { useOrderUI } from "@/features/cart/ui";
+import { useOrderingState } from "@/features/live/store";
 import { formatEuros } from "@/lib/money";
 
 /**
  * Barre fixe mobile.
- * - Panier non vide : « 2 articles • 18,50 € — Voir mon panier ».
+ * - Panier non vide : « 2 articles • 18,50 € — Voir le panier ».
  * - Sinon, une fois le hero quitté : « Commander » (+ Appeler / Itinéraire si renseignés).
- * Masquée pendant la commande (/commande), qui a son propre bouton de paiement.
+ * Masquée pendant la commande et le suivi (/commande, /suivi).
+ * Commandes suspendues : le bouton Commander affiche le message de pause.
  */
 export function MobileActionBar({
   phoneHref,
@@ -26,6 +28,7 @@ export function MobileActionBar({
   const count = useCartCount();
   const subtotal = useCartSubtotal();
   const openCart = useOrderUI((s) => s.openCart);
+  const ordering = useOrderingState();
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
@@ -38,7 +41,7 @@ export function MobileActionBar({
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname]);
 
-  const mode = pathname.startsWith("/commande")
+  const mode = pathname.startsWith("/commande") || pathname.startsWith("/suivi")
     ? null
     : count > 0
       ? "cart"
@@ -70,7 +73,7 @@ export function MobileActionBar({
                 {count} article{count > 1 ? "s" : ""} • {formatEuros(subtotal)}
               </span>
               <span className="flex min-h-12 items-center gap-1.5 rounded-full bg-white px-3.5 text-[12.5px] font-bold tracking-[0.04em] whitespace-nowrap text-royal uppercase">
-                Voir mon panier
+                Voir le panier
                 <ArrowRight className="hidden size-4 min-[400px]:block" aria-hidden="true" />
               </span>
             </button>
@@ -92,13 +95,20 @@ export function MobileActionBar({
                   <MapPin className="size-5" aria-hidden="true" />
                 </a>
               )}
-              <Link
-                href="/menu"
-                className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full bg-royal text-[14px] font-bold tracking-[0.06em] text-white uppercase"
-              >
-                Commander
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
+              {ordering.canOrder ? (
+                <Link
+                  href="/menu"
+                  className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-full bg-royal text-[14px] font-bold tracking-[0.06em] text-white uppercase"
+                >
+                  Commander
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              ) : (
+                <span role="status" className="flex min-h-[52px] flex-1 items-center justify-center gap-2 px-3 text-center text-[13px] font-bold text-white/85 uppercase">
+                  <PauseCircle className="size-4 shrink-0" aria-hidden="true" />
+                  {ordering.message}
+                </span>
+              )}
             </div>
           )}
         </m.div>

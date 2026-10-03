@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { restaurant } from "@/data/restaurant";
 import { directionsHref, fullAddress, phoneHref, socials } from "@/lib/contact";
 import { WEEK, formatRanges } from "@/lib/hours";
+import { OrderCta } from "@/components/order/OrderCta";
 
 type NavItem = { href: string; label: string };
 
@@ -34,10 +35,7 @@ export function Footer({ nav }: { nav: NavItem[] }) {
             Restaurant grillade. Kebabs, tacos, burgers et assiettes, sur place ou à emporter.
           </p>
           <div className="mt-7 flex flex-wrap gap-2.5">
-            <ButtonLink href="/menu">
-              Commander
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </ButtonLink>
+            <OrderCta tone="dark" arrow />
             <ButtonLink href="/menu" variant="ghost" icon={<BookOpen className="size-4" aria-hidden="true" />}>
               La carte
             </ButtonLink>
@@ -107,6 +105,7 @@ export function Footer({ nav }: { nav: NavItem[] }) {
           <p>© {year} La Perle Bleue</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             <li><Link href="/mentions-legales" className="link-line hover:text-white">Mentions légales</Link></li>
+            <li><Link href="/cgv" className="link-line hover:text-white">CGV</Link></li>
             <li><Link href="/politique-confidentialite" className="link-line hover:text-white">Confidentialité</Link></li>
             <li><Link href="/politique-confidentialite#cookies" className="link-line hover:text-white">Cookies</Link></li>
           </ul>

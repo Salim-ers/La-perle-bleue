@@ -193,3 +193,10 @@ body {
   from { transform: translateY(14px); opacity: 0.01; }
   to { transform: none; opacity: 1; }
 }
+
+/* Tablette paysage / petit écran peu haut : on retire l'accroche du hero pour garder COMMANDER au centre. */
+@media (min-width: 64rem) and (max-height: 850px) {
+  .hero-lead {
+    display: none;
+  }
+}
