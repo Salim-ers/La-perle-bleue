@@ -420,7 +420,7 @@ function Choice({
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors",
+        "relative flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors",
         "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-royal",
         checked ? "border-royal bg-royal/5" : "border-line hover:border-night/25",
         disabled && "cursor-not-allowed opacity-50 hover:border-line",

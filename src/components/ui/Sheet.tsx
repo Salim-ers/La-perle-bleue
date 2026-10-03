@@ -127,8 +127,8 @@ function SheetPanel({ onClose, labelledBy, variant = "modal", initialFocus, clas
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[60] flex items-end",
-        isDesktop && (variant === "drawer" ? "justify-end" : "items-center justify-center p-6"),
+        "fixed inset-0 z-[60] flex",
+        !isDesktop ? "items-end" : variant === "drawer" ? "justify-end" : "items-center justify-center p-6",
       )}
     >
       <m.div
@@ -148,7 +148,7 @@ function SheetPanel({ onClose, labelledBy, variant = "modal", initialFocus, clas
         tabIndex={-1}
         {...motionProps}
         className={cn(
-          "relative flex w-full flex-col overflow-hidden bg-white text-night outline-none",
+          "relative flex w-full flex-col overflow-clip bg-white text-night outline-none",
           "shadow-[0_-20px_60px_-24px_rgba(6,19,46,0.55)]",
           !isDesktop && "max-h-[95dvh] rounded-t-[26px] pb-[env(safe-area-inset-bottom)]",
           isDesktop && variant === "drawer" && "h-full max-w-[460px]",

@@ -302,7 +302,7 @@ function OptionGroupField({
             <li key={o.id}>
               <label
                 className={cn(
-                  "-mx-3 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-cream",
+                  "relative -mx-3 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-cream",
                   "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-royal",
                   disabled && "cursor-not-allowed opacity-45 hover:bg-transparent",
                 )}
