@@ -17,28 +17,35 @@ Aucun autre service : pas de Redis, pas de WebSocket, pas d'application native. 
 
 ---
 
-## 1. Créer la base Neon
+## 1. Créer la base Neon (depuis Vercel)
 
-1. Créer un compte sur [neon.tech](https://neon.tech) avec l'adresse du restaurant, puis un projet `la-perle-bleue`, région **Europe (Francfort)**.
-2. Garder la branche `main` pour la **production** et créer une branche `preview` pour les tests.
-3. Pour chaque branche, copier la chaîne de connexion **« Pooled connection »** (hôte contenant `-pooler`) : c'est `DATABASE_URL`.
+1. **Vercel → projet `la-perle-bleue` → onglet Storage → Create Database → Neon** (accepter les conditions la première fois).
+2. Région **Frankfurt (fra1)** : la même que les fonctions du site (`vercel.json`), données en Europe. Offre **Free** pour commencer.
+3. Connecter la base au projet en laissant les environnements cochés et **sans préfixe** : la variable doit s'appeler exactement `DATABASE_URL`. Vercel l'ajoute seul aux variables du projet, rien à copier.
+4. **Deployments → dernier déploiement de production → ⋯ → Redeploy** (une variable ajoutée ne s'applique qu'au déploiement suivant).
+
+Autre possibilité : un compte direct sur [neon.tech](https://neon.tech) (région Europe, Francfort), puis coller la chaîne de connexion « pooled » (hôte contenant `-pooler`) dans la variable `DATABASE_URL` de Vercel.
 
 ## 2. Créer les tables (migration)
 
-Les tables sont décrites dans `src/server/db/schema.ts` ; le SQL généré est dans `drizzle/0000_init.sql`.
+**Automatique.** À chaque build de **production**, `npm run build` lance d'abord `scripts/migrate.mjs`, qui applique les migrations manquantes du dossier `drizzle/` (déjà appliquées : table `drizzle.__drizzle_migrations`). Si une migration échoue, le build échoue et la version en ligne reste inchangée. Le build local et les previews ne touchent jamais à la base.
+
+Vérifier : `https://<domaine>/api/orders/00000000-0000-4000-8000-000000000000/status` doit répondre **404 « Commande introuvable. »** (base branchée, tables créées). 503 : `DATABASE_URL` absente de ce déploiement (redéployer) ; 500 : tables absentes (logs du build, ligne « Migrations : »).
+
+À la main si besoin (par exemple après un « Promote to Production », qui ne reconstruit pas le site) :
 
 ```bash
-# depuis le projet, une fois par branche Neon (preview puis production)
-DATABASE_URL="postgresql://…-pooler…/neondb?sslmode=require" npm run db:migrate
+DATABASE_URL="postgresql://…" npm run db:migrate
+# PowerShell : $env:DATABASE_URL="postgresql://…"; npm run db:migrate
 ```
-
-Solution de secours : coller le contenu de `drizzle/0000_init.sql` dans l'éditeur SQL de Neon. Dans ce cas, les migrations suivantes devront aussi être appliquées à la main.
 
 Le restaurant et ses réglages (horaires, délai de préparation) sont créés automatiquement au premier appel : rien d'autre à insérer.
 
 Tables : `restaurants`, `restaurant_settings`, `product_availability`, `customers`, `orders`, `order_items`, `order_item_options`, `payments`, `order_status_history`, `email_log`, `event_logs`, `rate_limits`.
 
-Après une modification du schéma : `npm run db:generate` (nouveau fichier SQL dans `drizzle/`), commit, puis `npm run db:migrate` sur chaque branche.
+Après une modification du schéma : `npm run db:generate` (nouveau fichier SQL dans `drizzle/`), commit, push : la migration s'applique au déploiement de production suivant.
+
+> Previews : par défaut elles utilisent la même base que la production. **Avant l'ouverture**, leur donner leur propre base (branche Neon `preview`, avec la variable `DATABASE_URL` de l'environnement Preview pointant dessus), sinon les commandes de test passées sur une preview arrivent dans la cuisine du restaurant. Une branche créée depuis `main` contient déjà les tables ; pour une nouvelle migration, lancer `npm run db:migrate` avec sa chaîne de connexion.
 
 > Coût : l'écran cuisine interroge la base toutes les 3 s tant qu'il est ouvert. La base reste donc active pendant le service. Vérifier que le quota d'heures de calcul de l'offre Neon choisie couvre les horaires d'ouverture ; sinon, passer à l'offre payante d'entrée de gamme.
 
@@ -73,7 +80,7 @@ Dans **Vercel → Project → Settings → Environment Variables** (jamais dans 
 | Variable | Production | Preview | Remarque |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | `https://laperlebleue.fr` | — | domaine final, sans slash |
-| `DATABASE_URL` | branche `main` | branche `preview` | chaîne « pooled » |
+| `DATABASE_URL` | ajoutée par la base Neon (section 1) | idem, puis branche `preview` avant l'ouverture | ne pas la créer à la main |
 | `MOLLIE_API_KEY` | `live_…` | `test_…` | |
 | `RESEND_API_KEY` | ✔ | ✔ (facultatif) | |
 | `RESEND_FROM` | ✔ | ✔ (facultatif) | domaine vérifié |
@@ -176,8 +183,9 @@ Journal : la table `event_logs` (et les logs Vercel) trace les autorisations, ca
 - [ ] Formules menu validées
 - [ ] Allergènes validés et saisis
 - [ ] Mentions légales, CGV et confidentialité complétées
-- [ ] Neon production créé, migration appliquée
-- [ ] Neon preview créé, migration appliquée
+- [ ] Base Neon créée (Frankfurt) et connectée au projet, redéploiement fait
+- [ ] `/api/orders/00000000-0000-4000-8000-000000000000/status` répond 404 (tables créées)
+- [ ] Previews séparées de la production (branche Neon `preview`)
 - [ ] Compte Mollie validé, méthode Cartes active
 - [ ] Clés Mollie : `test_` en preview, `live_` en production
 - [ ] Webhook joignable (domaine public ; bypass Vercel si previews protégées)
