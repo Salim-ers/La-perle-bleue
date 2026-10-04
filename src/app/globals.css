@@ -135,16 +135,9 @@ body {
   }
 }
 
-/* « Nappe bleue » de la carte : dégradé bleu qui rejoint le bleu nuit du pied de page. */
-@utility nappe {
-  background: linear-gradient(to bottom, var(--color-deep) 0%, var(--color-deep) 45%, var(--color-night) 100%);
-}
-
-/* Perles (nazar) discrètes sur les côtés de la carte, plus marquées vers les bords de l'écran. */
-@utility perles {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='132' height='132'><g fill='none' stroke-width='1.6' opacity='.24'><circle cx='33' cy='33' r='12' stroke='%238cc8f2'/><circle cx='33' cy='33' r='6.5' stroke='%23ffffff'/><circle cx='99' cy='99' r='12' stroke='%238cc8f2'/><circle cx='99' cy='99' r='6.5' stroke='%23ffffff'/></g><g fill='%238cc8f2' opacity='.32'><circle cx='33' cy='33' r='2.6'/><circle cx='99' cy='99' r='2.6'/></g></svg>");
-  background-size: 132px 132px;
-  mask-image: linear-gradient(90deg, #000 0%, rgb(0 0 0 / 0.35) 14%, transparent 28%, transparent 72%, rgb(0 0 0 / 0.35) 86%, #000 100%);
+/* Dégradé « perle bleue » (reflet en haut à gauche) des grands disques décoratifs de l'accueil. */
+@utility perle-bleue {
+  background: radial-gradient(circle at 30% 24%, #6a9ff0 0%, #2a6ad6 20%, #0140b8 44%, #053b8c 76%, #062a66 100%);
 }
 
 /* Soulignement animé */
@@ -180,21 +173,6 @@ body {
   .hero-nudge {
     animation: hero-nudge 2.2s ease-in-out 1.6s infinite;
   }
-  .bead-float {
-    animation: bead-float 6s ease-in-out var(--f, 0s) infinite alternate;
-  }
-  .seal-spin {
-    transform-box: view-box;
-    transform-origin: 100px 100px;
-    animation: seal-spin 40s linear infinite;
-  }
-}
-@keyframes seal-spin {
-  to { transform: rotate(360deg); }
-}
-@keyframes bead-float {
-  from { transform: translateY(-7px); }
-  to { transform: translateY(7px); }
 }
 @keyframes hero-nudge {
   0%, 100% { transform: none; }

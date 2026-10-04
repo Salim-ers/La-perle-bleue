@@ -25,13 +25,11 @@ export function HalalBadge({ className, compact = false, id = "halal-arc" }: { c
       ) : (
         <>
           <path id={id} d="M 100,100 m -73,0 a 73,73 0 1,1 146,0 a 73,73 0 1,1 -146,0" fill="none" />
-          <g className="seal-spin">
-            <text fill="#fff" fontSize="15" fontWeight="700" letterSpacing="3" style={{ fontFamily: "var(--font-sans)" }}>
-              <textPath href={`#${id}`} textLength="452" lengthAdjust="spacing">
-                VIANDE HALAL • VIANDE HALAL •
-              </textPath>
-            </text>
-          </g>
+          <text fill="#fff" fontSize="15" fontWeight="700" letterSpacing="3" style={{ fontFamily: "var(--font-sans)" }}>
+            <textPath href={`#${id}`} textLength="452" lengthAdjust="spacing">
+              VIANDE HALAL • VIANDE HALAL •
+            </textPath>
+          </text>
           <circle cx="100" cy="100" r="57" fill="#fff" />
           <circle cx="100" cy="100" r="51" fill="none" stroke="#8cc8f2" strokeWidth="2" />
           <text x="100" y="102" textAnchor="middle" fill="#0140b8" fontSize="40" fontWeight="700" fontFamily={ARABIC_FONTS}>

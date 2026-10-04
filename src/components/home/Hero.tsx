@@ -30,6 +30,8 @@ export function Hero() {
       // Plein écran sous le header et la barre d'information (44 px + bordure).
       className="relative flex min-h-[calc(100svh-var(--header-h)-45px)] flex-col overflow-hidden bg-cream"
     >
+      {/* Rappel de la perle sur le bord gauche, seulement quand la marge le permet (le texte n'est jamais touché). */}
+      <div aria-hidden="true" className="perle-bleue pointer-events-none absolute top-[54%] -left-[150px] hidden size-60 rounded-full min-[1400px]:block" />
       <div className="container-x grid flex-1 items-center gap-8 pt-8 pb-10 sm:gap-10 sm:pt-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-10 lg:py-6 xl:gap-16">
         {/* ——— Texte ——— */}
         <div className="relative z-10 text-center lg:text-left">
@@ -70,12 +72,12 @@ export function Hero() {
 
         {/* ——— Composition photo ——— */}
         <div className="relative mb-3 lg:mb-0">
-          {/* Anneau discret, écho à la perle du logo */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-[56%] hidden aspect-square w-[118%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-royal/10 lg:block"
-          />
           <div className="relative lg:ml-auto lg:w-[86%]">
+            {/* La « perle bleue » : grand disque bleu derrière les photos, qui déborde sur le bord de l'écran. */}
+            <div
+              aria-hidden="true"
+              className="perle-bleue pointer-events-none absolute top-1/2 left-1/2 aspect-square h-[118%] -translate-x-1/2 -translate-y-1/2 rounded-full lg:left-[78%] lg:h-[114%]"
+            />
             <div className="hero-media relative h-[clamp(220px,42svh,380px)] overflow-hidden rounded-[28px] bg-paper shadow-[0_40px_80px_-42px_rgba(6,19,46,0.65)] sm:h-[clamp(320px,44svh,480px)] lg:h-[clamp(400px,calc(100svh-var(--header-h)-45px-250px),640px)]">
               <Image
                 src={main.src}
