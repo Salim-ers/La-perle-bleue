@@ -11,7 +11,7 @@ export function EmptyCart({ onNavigate, headingLevel = "h2" }: { onNavigate?: ()
       </span>
       <Heading className="display mt-8 text-[2.8rem] text-deep">Votre panier a faim.</Heading>
       <p className="mt-3 max-w-[30ch] text-slate">
-        Un kebab, un tacos ou une assiette grillée ? On s&apos;occupe du reste.
+        Un kebab, un tacos ou une assiette grillée&nbsp;? On s&apos;occupe du reste.
       </p>
       <ButtonLink href="/menu" size="lg" className="mt-8" onClick={onNavigate}>
         Voir la carte

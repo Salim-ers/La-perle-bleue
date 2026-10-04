@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MenuCategory, MenuProduct, tacos as TacosData } from "@/data/menu";
 import { MenuItem } from "./MenuItem";
 import { ProductModal } from "./ProductModal";
@@ -17,29 +17,40 @@ export function MenuBrowser({
   products: MenuProduct[];
   tacos: typeof TacosData;
 }) {
-  const visible = categories.filter(
-    (c) => c.id === "tacos" || products.some((p) => p.categoryId === c.id),
+  const visible = useMemo(
+    () => categories.filter((c) => c.id === "tacos" || products.some((p) => p.categoryId === c.id)),
+    [categories, products],
   );
   const [active, setActive] = useState(visible[0]?.id);
   const [selected, setSelected] = useState<MenuProduct | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setSelected(null), []);
 
+  // Catégorie active : la dernière dont le titre est passé sous la barre (la dernière en bas de page, même courte).
   useEffect(() => {
     const sections = visible
       .map((c) => document.getElementById(`cat-${c.id}`))
       .filter(Boolean) as HTMLElement[];
-    const io = new IntersectionObserver(
-      (entries) => {
-        const top = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (top) setActive(top.target.id.replace("cat-", "") as MenuCategory["id"]);
-      },
-      { rootMargin: "-140px 0px -55% 0px" },
-    );
-    sections.forEach((s) => io.observe(s));
-    return () => io.disconnect();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      let current = sections[0];
+      for (const s of sections) if (s.getBoundingClientRect().top <= 170) current = s;
+      const root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 4) current = sections[sections.length - 1];
+      if (current) setActive(current.id.replace("cat-", "") as MenuCategory["id"]);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [visible]);
 
   // Garde l'onglet actif visible dans la barre horizontale

@@ -2,7 +2,7 @@
 
 import { ArrowRight, PauseCircle } from "lucide-react";
 import type { ReactNode } from "react";
-import { useOrderingState } from "@/features/live/store";
+import { SETUP_MESSAGE, useOrderingState } from "@/features/live/store";
 import { cn } from "@/lib/utils";
 import { ButtonLink } from "@/components/ui/Button";
 
@@ -40,7 +40,7 @@ export function OrderCta({
         )}
       >
         <PauseCircle className="size-4 shrink-0" aria-hidden="true" />
-        {short ? "Commandes suspendues" : message}
+        {short ? (message === SETUP_MESSAGE ? "Commande en ligne bientôt" : "Commandes suspendues") : message}
       </span>
     );
   }
