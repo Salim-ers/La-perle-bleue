@@ -22,6 +22,11 @@ export function CartHydrator() {
     const timer = window.setInterval(refreshLive, 60_000);
     const onStorage = (e: StorageEvent) => {
       if (e.key === CART_STORAGE_KEY) void useCartStore.persist.rehydrate();
+      // Démo : réglages changés dans l'onglet cuisine, appliqués tout de suite.
+      if (e.key?.startsWith("lpb-demo")) {
+        useDemo.getState().sync();
+        void refreshLive();
+      }
     };
     const onVisible = () => document.visibilityState === "visible" && void refreshLive();
     window.addEventListener("storage", onStorage);

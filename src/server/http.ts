@@ -33,7 +33,7 @@ export async function guardAdmin(request: Request, write = false) {
 
 export function serverError(error: unknown) {
   if (error instanceof DatabaseNotConfiguredError) {
-    return json({ error: "Base de données non configurée (DATABASE_URL)." }, 503);
+    return json({ error: "Base de données non configurée (DATABASE_URL).", code: "setup" }, 503);
   }
   console.error(error);
   return json({ error: "Erreur serveur. Réessayez dans un instant." }, 500);

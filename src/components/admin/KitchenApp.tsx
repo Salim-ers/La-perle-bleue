@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BellOff, BellRing, Loader2, Phone, Power, Settings, Wifi, WifiOff, X } from "lucide-react";
+import { BellOff, BellRing, Database, Loader2, Phone, Plus, Power, Settings, Wifi, WifiOff, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KitchenOrder } from "@/features/kitchen/types";
 import { REFUSAL_REASONS, type KitchenAction, type OrderStatus, type RefusalReason } from "@/features/order/types";
@@ -29,8 +29,17 @@ const STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
   READY: "Prête",
 };
 
-export function KitchenApp({ source = apiKitchenSource, demo = false }: { source?: KitchenSource; demo?: boolean }) {
-  const { snapshot, online, refresh } = useKitchenOrders(source);
+export function KitchenApp({
+  source = apiKitchenSource,
+  demo = false,
+  onSimulate,
+}: {
+  source?: KitchenSource;
+  demo?: boolean;
+  /** Démo : crée une commande client fictive (tablette seule). */
+  onSimulate?: () => void;
+}) {
+  const { snapshot, online, setup, refresh } = useKitchenOrders(source);
   const [started, setStarted] = useState(false);
   const [mutedIds, setMutedIds] = useState<string[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
@@ -66,9 +75,16 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
     if (!snapshot) return;
     const enable = !snapshot.settings.ordersEnabled;
     if (!enable && !window.confirm("Suspendre les commandes en ligne ? Les clients ne pourront plus commander.")) return;
-    await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ordersEnabled: enable }) });
+    await source.setOrdersEnabled(enable);
     await refresh();
   };
+
+  const simulate = async () => {
+    onSimulate?.();
+    await refresh();
+  };
+
+  if (setup) return <SetupScreen />;
 
   if (!started) {
     return (
@@ -88,6 +104,7 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
             Démarrer le service
           </button>
           <p className="mx-auto mt-6 max-w-sm text-white/70">Active la sonnerie des nouvelles commandes et garde l&apos;écran allumé.</p>
+          {demo && <p className="mx-auto mt-3 max-w-sm font-bold text-[#fdb022]">Démonstration : aucune vraie commande, aucun paiement.</p>}
         </div>
       </main>
     );
@@ -111,7 +128,12 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
           </button>
         )}
         <div className="ml-auto flex items-center gap-2">
-          {snapshot && !demo && (
+          {onSimulate && (
+            <button type="button" onClick={simulate} className="flex min-h-12 items-center gap-2 rounded-full bg-[#2e90fa] px-4 text-base font-bold text-white">
+              <Plus className="size-5" aria-hidden="true" /> Simuler une commande
+            </button>
+          )}
+          {snapshot && (
             <button
               type="button"
               onClick={togglePause}
@@ -129,11 +151,9 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
               <BellOff className="size-5" aria-hidden="true" /> Mute
             </button>
           )}
-          {!demo && (
-            <Link href="/admin/reglages" className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-base font-bold">
-              <Settings className="size-5" aria-hidden="true" /> Réglages
-            </Link>
-          )}
+          <Link href={demo ? "/demo/reglages" : "/admin/reglages"} className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-base font-bold">
+            <Settings className="size-5" aria-hidden="true" /> Réglages
+          </Link>
         </div>
       </header>
 
@@ -144,6 +164,13 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
+      )}
+
+      {demo && snapshot && orders.length === 0 && (
+        <p className="mx-4 mt-3 rounded-2xl bg-[#7a2e0e] px-4 py-3 text-lg">
+          <strong>Démo :</strong> passez une commande sur le site ouvert avec <strong>?demo=1</strong> dans ce même navigateur (autre onglet), elle
+          arrive ici avec la sonnerie. Sur une tablette seule, appuyez sur <strong>« Simuler une commande »</strong>.
+        </p>
       )}
 
       {!snapshot ? (
@@ -219,6 +246,30 @@ export function KitchenApp({ source = apiKitchenSource, demo = false }: { source
       {refusing && (
         <RefuseDialog order={refusing} busy={busy} onCancel={() => setRefuseId(null)} onConfirm={(reason) => run(refusing, "refuse", reason)} />
       )}
+    </main>
+  );
+}
+
+/** Vraie cuisine avant la mise en service : la base de données n'est pas encore branchée. */
+function SetupScreen() {
+  return (
+    <main className="grid min-h-svh place-items-center p-6">
+      <div className="w-full max-w-xl rounded-3xl bg-[#131c2e] p-8 ring-1 ring-white/10">
+        <Database className="size-10 text-[#fdb022]" aria-hidden="true" />
+        <h1 className="mt-4 text-3xl font-black">Commandes en ligne pas encore branchées</h1>
+        <p className="mt-3 text-lg text-white/80">
+          Les vraies commandes apparaîtront ici dès que la base de données et le paiement seront configurés sur Vercel (voir README-PRODUCTION.md).
+        </p>
+        <p className="mt-3 text-lg text-white/80">Pour présenter le fonctionnement au restaurateur, utilisez la démonstration :</p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <Link href="/demo/cuisine" className="flex min-h-16 items-center justify-center rounded-2xl bg-[#12b76a] px-4 text-center text-lg font-black text-[#052e1a] uppercase">
+            Cuisine de démo
+          </Link>
+          <a href="/?demo=1" target="_blank" rel="noopener" className="flex min-h-16 items-center justify-center rounded-2xl bg-white/10 px-4 text-center text-lg font-black uppercase">
+            Site en mode démo
+          </a>
+        </div>
+      </div>
     </main>
   );
 }

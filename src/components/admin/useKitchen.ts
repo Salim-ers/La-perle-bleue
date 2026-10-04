@@ -11,22 +11,32 @@ const POLL_MS = 3000;
  * GET /api/kitchen/orders toutes les 3 s, nouvel essai automatique si le réseau tombe.
  */
 export interface KitchenSource {
-  load: () => Promise<KitchenSnapshot | "unauthorized">;
+  /** "setup" : la base de données n'est pas encore branchée (site pas encore configuré). */
+  load: () => Promise<KitchenSnapshot | "unauthorized" | "setup">;
   act: (orderId: string, action: KitchenAction, reason?: RefusalReason) => Promise<string | null>;
+  setOrdersEnabled: (enabled: boolean) => Promise<void>;
 }
 
-async function loadFromApi(): Promise<KitchenSnapshot | "unauthorized"> {
+async function loadFromApi(): Promise<KitchenSnapshot | "unauthorized" | "setup"> {
   const res = await fetch("/api/kitchen/orders", { cache: "no-store" });
   if (res.status === 401) return "unauthorized";
+  if (res.status === 503 && ((await res.json().catch(() => ({}))) as { code?: string }).code === "setup") return "setup";
   if (!res.ok) throw new Error(String(res.status));
   return (await res.json()) as KitchenSnapshot;
 }
 
-export const apiKitchenSource: KitchenSource = { load: loadFromApi, act: (id, action, reason) => sendKitchenAction(id, action, reason) };
+export const apiKitchenSource: KitchenSource = {
+  load: loadFromApi,
+  act: (id, action, reason) => sendKitchenAction(id, action, reason),
+  setOrdersEnabled: async (enabled) => {
+    await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ordersEnabled: enabled }) });
+  },
+};
 
 export function useKitchenOrders(source: KitchenSource = apiKitchenSource) {
   const [snapshot, setSnapshot] = useState<KitchenSnapshot | null>(null);
   const [online, setOnline] = useState(true);
+  const [setup, setSetup] = useState(false);
   const [lastSync, setLastSync] = useState<number | null>(null);
   const inFlight = useRef(false);
 
@@ -39,8 +49,10 @@ export function useKitchenOrders(source: KitchenSource = apiKitchenSource) {
         window.location.replace("/admin/login?suite=/admin/cuisine");
         return;
       }
-      setSnapshot(result);
+      setSetup(result === "setup");
       setOnline(true);
+      if (result === "setup") return;
+      setSnapshot(result);
       setLastSync(Date.now());
     } catch {
       setOnline(false);
@@ -64,7 +76,7 @@ export function useKitchenOrders(source: KitchenSource = apiKitchenSource) {
     };
   }, [refresh]);
 
-  return { snapshot, online, lastSync, refresh };
+  return { snapshot, online, setup, lastSync, refresh };
 }
 
 /** Action cuisine. Renvoie un message d'erreur ou null. */

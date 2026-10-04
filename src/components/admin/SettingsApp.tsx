@@ -1,43 +1,89 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Loader2, LogOut, Minus, Plus, Search } from "lucide-react";
+import { ArrowLeft, Database, Loader2, LogOut, Minus, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
-interface Settings {
+export interface Settings {
   ordersEnabled: boolean;
   preparationDelay: number;
   maxOrdersPerSlot: number;
 }
-interface Availability {
+export interface Availability {
   unavailableProducts: string[];
   unavailableOptions: string[];
 }
-interface Item {
+export interface SettingsItem {
   id: string;
   name: string;
   group: string;
 }
 
+/** Lecture / écriture des réglages (API par défaut ; mode démonstration : navigateur). */
+export interface SettingsSource {
+  load: () => Promise<{ settings: Settings; availability: Availability } | "unauthorized" | "setup">;
+  patch: (body: Partial<Settings>) => Promise<Settings>;
+  setAvailability: (type: "product" | "option", itemId: string, available: boolean) => Promise<Availability>;
+  logout?: () => Promise<void>;
+}
+
+async function readJson<T>(res: Response) {
+  if (!res.ok) throw new Error(String(res.status));
+  return (await res.json()) as T;
+}
+
+const apiSettingsSource: SettingsSource = {
+  load: async () => {
+    const [s, a] = await Promise.all([fetch("/api/admin/settings", { cache: "no-store" }), fetch("/api/admin/availability", { cache: "no-store" })]);
+    if (s.status === 401 || a.status === 401) return "unauthorized";
+    if (s.status === 503 || a.status === 503) return "setup";
+    return { settings: await readJson<Settings>(s), availability: await readJson<Availability>(a) };
+  },
+  patch: async (body) =>
+    readJson<Settings>(await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })),
+  setAvailability: async (type, itemId, available) =>
+    readJson<Availability>(
+      await fetch("/api/admin/availability", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, itemId, available }) }),
+    ),
+  logout: async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.replace("/admin/login");
+  },
+};
+
 /** Réglages du restaurant : pause, délai de préparation, capacité, ruptures. Grandes zones tactiles. */
-export function SettingsApp({ products, options, delays }: { products: Item[]; options: Item[]; delays: number[] }) {
+export function SettingsApp({
+  products,
+  options,
+  delays,
+  source = apiSettingsSource,
+  demo = false,
+}: {
+  products: SettingsItem[];
+  options: SettingsItem[];
+  delays: number[];
+  source?: SettingsSource;
+  demo?: boolean;
+}) {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [availability, setAvailability] = useState<Availability | null>(null);
+  const [setup, setSetup] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     try {
-      const [s, a] = await Promise.all([fetch("/api/admin/settings", { cache: "no-store" }), fetch("/api/admin/availability", { cache: "no-store" })]);
-      if (s.status === 401 || a.status === 401) return window.location.replace("/admin/login?suite=/admin/reglages");
-      setSettings(await s.json());
-      setAvailability(await a.json());
+      const result = await source.load();
+      if (result === "unauthorized") return window.location.replace("/admin/login?suite=/admin/reglages");
+      if (result === "setup") return setSetup(true);
+      setSettings(result.settings);
+      setAvailability(result.availability);
     } catch {
       setError("Pas de connexion. Réessayez.");
     }
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     void load();
@@ -47,9 +93,7 @@ export function SettingsApp({ products, options, delays }: { products: Item[]; o
     setPending(key);
     setError(null);
     try {
-      const res = await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      setSettings(await res.json());
+      setSettings(await source.patch(body));
     } catch {
       setError("Réglage non enregistré. Réessayez.");
     }
@@ -60,9 +104,7 @@ export function SettingsApp({ products, options, delays }: { products: Item[]; o
     setPending(`${type}:${itemId}`);
     setError(null);
     try {
-      const res = await fetch("/api/admin/availability", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, itemId, available }) });
-      if (!res.ok) throw new Error();
-      setAvailability(await res.json());
+      setAvailability(await source.setAvailability(type, itemId, available));
     } catch {
       setError("Rupture non enregistrée. Réessayez.");
     }
@@ -70,7 +112,7 @@ export function SettingsApp({ products, options, delays }: { products: Item[]; o
   };
 
   const filter = useCallback(
-    (list: Item[]) => {
+    (list: SettingsItem[]) => {
       const q = query.trim().toLowerCase();
       return q ? list.filter((i) => `${i.name} ${i.group}`.toLowerCase().includes(q)) : list;
     },
@@ -86,21 +128,24 @@ export function SettingsApp({ products, options, delays }: { products: Item[]; o
   return (
     <main className="mx-auto max-w-4xl p-4 pb-16 sm:p-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/admin/cuisine" className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-lg font-bold">
+        <Link href={demo ? "/demo/cuisine" : "/admin/cuisine"} className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-lg font-bold">
           <ArrowLeft className="size-5" aria-hidden="true" /> Commandes
         </Link>
-        <button
-          type="button"
-          onClick={async () => {
-            await fetch("/api/admin/logout", { method: "POST" });
-            window.location.replace("/admin/login");
-          }}
-          className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-lg font-bold"
-        >
-          <LogOut className="size-5" aria-hidden="true" /> Se déconnecter
-        </button>
+        {source.logout && (
+          <button type="button" onClick={source.logout} className="flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-lg font-bold">
+            <LogOut className="size-5" aria-hidden="true" /> Se déconnecter
+          </button>
+        )}
       </header>
-      <h1 className="mt-6 text-4xl font-black">Réglages</h1>
+      <h1 className="mt-6 flex items-center gap-3 text-4xl font-black">
+        Réglages
+        {demo && <span className="rounded-full bg-[#7a2e0e] px-3 py-1.5 text-sm font-bold uppercase">Démo</span>}
+      </h1>
+      {demo && (
+        <p className="mt-3 text-lg text-white/70">
+          S&apos;applique tout de suite au site ouvert en mode démo dans ce navigateur (pause, temps de préparation, ruptures).
+        </p>
+      )}
 
       {error && (
         <p role="alert" className="mt-4 rounded-2xl bg-[#f04438] px-4 py-3 text-lg font-bold">
@@ -108,7 +153,16 @@ export function SettingsApp({ products, options, delays }: { products: Item[]; o
         </p>
       )}
 
-      {!settings || !availability ? (
+      {setup ? (
+        <section className="mt-6 rounded-3xl bg-[#131c2e] p-6 ring-1 ring-white/10">
+          <Database className="size-9 text-[#fdb022]" aria-hidden="true" />
+          <h2 className="mt-3 text-2xl font-black">Base de données pas encore branchée</h2>
+          <p className="mt-2 text-lg text-white/80">Les réglages seront enregistrés ici une fois la base configurée sur Vercel (voir README-PRODUCTION.md).</p>
+          <Link href="/demo/reglages" className="mt-5 inline-flex min-h-14 items-center rounded-2xl bg-[#12b76a] px-6 text-lg font-black text-[#052e1a] uppercase">
+            Réglages de démo
+          </Link>
+        </section>
+      ) : !settings || !availability ? (
         <p className="mt-10 flex items-center gap-3 text-xl text-white/70">
           <Loader2 className="size-6 animate-spin" aria-hidden="true" /> Chargement…
         </p>

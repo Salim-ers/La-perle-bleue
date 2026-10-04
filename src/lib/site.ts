@@ -26,7 +26,6 @@ export const nav = [
   { href: "/", label: "Accueil" },
   { href: "/menu", label: "La carte" },
   { href: "/#favoris", label: "Nos spécialités" },
-  { href: "/galerie", label: "Galerie" },
   { href: "/#avis", label: "Avis", requiresReviews: true },
   { href: "/contact", label: "Contact" },
 ] as const;

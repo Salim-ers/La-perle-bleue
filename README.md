@@ -95,6 +95,15 @@ ADMIN_SESSION_SECRET=une-chaine-aleatoire-de-32-caracteres-minimum
 
 puis `npm run build && npm start` : la page de paiement est remplacée par `/paiement-test/…` (autoriser / refuser / abandonner). Ces deux réglages sont refusés en production.
 
+### Mode démonstration (présentation au restaurateur)
+
+Fonctionne même sur le site en ligne sans base ni Mollie : rien n'est envoyé au serveur, tout reste dans le navigateur (`src/features/demo/store.ts`).
+
+- Site : ouvrir `/?demo=1` (bandeau « Mode démo », bouton « Quitter » ou `?demo=0` pour sortir). Paiement simulé, puis suivi de commande.
+- Cuisine : `/demo/cuisine` (lien « Ouvrir la cuisine » du bandeau). Les commandes passées dans un autre onglet **du même navigateur** arrivent avec la sonnerie. Sur une tablette seule, le bouton « Simuler une commande » crée une commande fictive.
+- Réglages : `/demo/reglages` (pause, temps de préparation, capacité, ruptures), appliqués aussitôt au site démo du même navigateur.
+- Le téléphone et la tablette ne se synchronisent pas en démo (pas de base) : c'est le cas uniquement une fois Neon branché.
+
 ## Qualité mesurée (Lighthouse mobile, serveur local)
 
 - Accessibilité 100, bonnes pratiques 100, SEO 100 : mesures fiables.
@@ -102,7 +111,7 @@ puis `npm run build && npm start` : la page de paiement est remplacée par `/pai
 - Leviers si le score reste sous 90 en production :
   1. Remplacer `BigVisual` (parallaxe) par une image fixe.
   2. Retirer l'animation d'entrée de la section signature.
-  3. Réduire le nombre de photos de l'aperçu galerie.
+  3. Réduire le nombre de photos de la section « En images ».
 
 ## Photos des plats générées (IA)
 

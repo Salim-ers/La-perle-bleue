@@ -64,15 +64,3 @@ export const galleryPreviewKeys: ImageKey[] = [
   "comptoir-commandes",
 ];
 
-/** Ordre de la galerie. */
-export const galleryKeys: ImageKey[] = [
-  "vitrine-cuisine",
-  "assiette-mixte",
-  "salle",
-  "berliner-kebab",
-  "assiette-entrecote",
-  "facade",
-  "assiette-poulet",
-  "comptoir-commandes",
-  "lahmacun",
-];

@@ -10,13 +10,31 @@
 import { create } from "zustand";
 import { restaurant } from "@/data/restaurant";
 import type { KitchenOrder, KitchenSnapshot } from "@/features/kitchen/types";
-import { computePickupAvailability, minutesToTime, type PickupAvailability } from "@/features/order/pickup";
+import { orderingSettings } from "@/data/ordering";
+import { computePickupAvailability, minutesToTime, slotFor, type PickupAvailability } from "@/features/order/pickup";
 import type { Customer, KitchenAction, OrderStatus, PaymentStatus, PickupTime, PublicOrderStatus, RefusalReason } from "@/features/order/types";
 import { parisNow, toMinutes } from "@/lib/hours";
 
 const FLAG = "lpb-demo";
 const ORDERS = "lpb-demo-orders";
-export const DEMO_PREPARATION_DELAY = 20;
+const SETTINGS = "lpb-demo-settings";
+
+/** Réglages de démo (pause, délai, capacité, ruptures), modifiables depuis /demo/reglages. */
+export interface DemoSettings {
+  ordersEnabled: boolean;
+  preparationDelay: number;
+  maxOrdersPerSlot: number;
+  unavailableProducts: string[];
+  unavailableOptions: string[];
+}
+
+const DEFAULT_SETTINGS: DemoSettings = {
+  ordersEnabled: true,
+  preparationDelay: orderingSettings.defaultPreparationDelay,
+  maxOrdersPerSlot: orderingSettings.defaultMaxOrdersPerSlot,
+  unavailableProducts: [],
+  unavailableOptions: [],
+};
 
 export interface DemoOrder {
   id: string;
@@ -54,6 +72,7 @@ export const useDemo = create<{ active: boolean; sync: () => void; set: (on: boo
     else {
       s?.removeItem(FLAG);
       s?.removeItem(ORDERS);
+      s?.removeItem(SETTINGS);
     }
     set({ active: on });
   },
@@ -71,17 +90,46 @@ function writeOrders(orders: DemoOrder[]) {
   storage()?.setItem(ORDERS, JSON.stringify(orders.slice(-50)));
 }
 
+export function getDemoSettings(): DemoSettings {
+  try {
+    return { ...DEFAULT_SETTINGS, ...(JSON.parse(storage()?.getItem(SETTINGS) ?? "{}") as Partial<DemoSettings>) };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function updateDemoSettings(patch: Partial<DemoSettings>): DemoSettings {
+  const next = { ...getDemoSettings(), ...patch };
+  storage()?.setItem(SETTINGS, JSON.stringify(next));
+  return next;
+}
+
+export function setDemoAvailability(type: "product" | "option", itemId: string, available: boolean): DemoSettings {
+  const key = type === "product" ? "unavailableProducts" : "unavailableOptions";
+  const list = getDemoSettings()[key].filter((id) => id !== itemId);
+  return updateDemoSettings({ [key]: available ? list : [...list, itemId] });
+}
+
 const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const parisTime = (iso: string) =>
   new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
+const ACTIVE: OrderStatus[] = ["PENDING_PAYMENT", "NEW", "ACCEPTED", "PREPARING", "READY"];
+
 /** Créneaux de démo : horaires réels, ou toute la journée si le restaurant est fermé au moment de la présentation. */
 export function demoPickupAvailability(): PickupAvailability {
-  const base = { now: parisNow(), ordersEnabled: true, preparationDelay: DEMO_PREPARATION_DELAY, maxOrdersPerSlot: 99, slotCounts: {} };
+  const settings = getDemoSettings();
+  const slotCounts: Record<string, number> = {};
+  for (const o of readOrders()) {
+    if (!ACTIVE.includes(o.status)) continue;
+    const slot = slotFor(toMinutes(o.pickupAt));
+    slotCounts[slot] = (slotCounts[slot] ?? 0) + 1;
+  }
+  const base = { now: parisNow(), ordersEnabled: settings.ordersEnabled, preparationDelay: settings.preparationDelay, maxOrdersPerSlot: settings.maxOrdersPerSlot, slotCounts };
   const real = computePickupAvailability({ ...base, hours: restaurant.openingHours });
-  if (real.asap.available || real.slots.length) return real;
+  if (!settings.ordersEnabled || real.asap.available || real.slots.length) return real;
   const allDay = { open: "00:00", close: "23:59" };
   const hours = Object.fromEntries(Object.keys(restaurant.openingHours).map((d) => [d, [allDay]])) as typeof restaurant.openingHours;
   return computePickupAvailability({ ...base, hours });
@@ -93,17 +141,19 @@ export function createDemoOrder(input: {
   note?: string;
   total: number;
   items: DemoOrder["items"];
+  /** Commande simulée depuis la cuisine : déjà payée (autorisée). */
+  paid?: boolean;
 }): DemoOrder {
   const orders = readOrders();
   const pickupAt =
     input.pickup.type === "ASAP"
-      ? minutesToTime(parisNow().minutes + DEMO_PREPARATION_DELAY)
+      ? minutesToTime(parisNow().minutes + getDemoSettings().preparationDelay)
       : minutesToTime(toMinutes(input.pickup.time));
   const order: DemoOrder = {
     id: newId(),
     number: 100 + orders.length,
-    status: "PENDING_PAYMENT",
-    paymentStatus: "PENDING",
+    status: input.paid ? "NEW" : "PENDING_PAYMENT",
+    paymentStatus: input.paid ? "AUTHORIZED" : "PENDING",
     createdAt: new Date().toISOString(),
     pickupType: input.pickup.type,
     pickupAt,
@@ -167,7 +217,8 @@ export function demoKitchenSnapshot(): KitchenSnapshot {
       customer: { name: `${o.customer.firstName} ${o.customer.lastName.charAt(0).toUpperCase()}.`, phone: o.customer.phone },
       items: o.items.map((i) => ({ quantity: i.quantity, productName: i.productName, kitchenLines: i.kitchenLines, note: i.note ?? null })),
     }));
-  return { orders, settings: { ordersEnabled: true, preparationDelay: DEMO_PREPARATION_DELAY }, serverTime: new Date().toISOString() };
+  const { ordersEnabled, preparationDelay } = getDemoSettings();
+  return { orders, settings: { ordersEnabled, preparationDelay }, serverTime: new Date().toISOString() };
 }
 
 const NEXT: Partial<Record<KitchenAction, { from: OrderStatus[]; to: OrderStatus; payment?: PaymentStatus }>> = {
