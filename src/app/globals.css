@@ -183,6 +183,14 @@ body {
   .bead-float {
     animation: bead-float 6s ease-in-out var(--f, 0s) infinite alternate;
   }
+  .seal-spin {
+    transform-box: view-box;
+    transform-origin: 100px 100px;
+    animation: seal-spin 40s linear infinite;
+  }
+}
+@keyframes seal-spin {
+  to { transform: rotate(360deg); }
 }
 @keyframes bead-float {
   from { transform: translateY(-7px); }

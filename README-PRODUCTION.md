@@ -170,6 +170,7 @@ Journal : la table `event_logs` (et les logs Vercel) trace les autorisations, ca
 - [ ] Tacos : peut-on prendre deux fois la même viande ?
 - [ ] Points `toConfirm` et `MENU_TODO` de `src/data/menu.ts` (prix du Cheese Burger, nom exact du Berliner…)
 - [ ] **Allergènes** de chaque plat, sauce et boisson (`src/data/allergens.ts`)
+- [ ] Viande halal : confirmer (logo « Halal » affiché sur la carte, `src/components/ui/HalalBadge.tsx`) et nom de l'organisme de certification s'il y en a un
 - [ ] Accord sur les photos générées par IA, ou vraies photos
 - [ ] Mentions légales et CGV : forme juridique, SIRET, directeur de publication, médiateur de la consommation, délai de conservation d'une commande non retirée
 - [ ] Durées de conservation des données (politique de confidentialité)
